@@ -140,6 +140,10 @@ router.post("/login", async (req, res) => {
 // POST JOB
 // =========================================================
 
+// =========================================================
+// POST JOB
+// =========================================================
+
 router.post("/postjob", async (req, res) => {
   try {
     const {
@@ -155,23 +159,67 @@ router.post("/postjob", async (req, res) => {
       category,
     } = req.body;
 
+    // -----------------------------------------
+    // Validate client
+    // -----------------------------------------
+
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: "Client ID is required",
+      });
+    }
+
+    // -----------------------------------------
+    // Check client exists
+    // -----------------------------------------
+
+    const client = await User.findById(clientId);
+
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        message: "Client not found",
+      });
+    }
+
+    // -----------------------------------------
+    // Check client role
+    // -----------------------------------------
+
+    if (client.role !== "client") {
+      return res.status(403).json({
+        success: false,
+        message: "Only clients can post jobs",
+      });
+    }
+
+    // -----------------------------------------
     // Create job
+    // -----------------------------------------
+
     const newJob = new PostJob({
-      clientId,
-      clientName,
+      clientId: client._id,
+      clientName: clientName || client.fullName,
       title,
       companyName,
       description,
-      skills,
-      budgetMin,
-      budgetMax,
+      skills: Array.isArray(skills) ? skills : [],
+      budgetMin:
+        budgetMin !== undefined && budgetMin !== "" ? Number(budgetMin) : 0,
+      budgetMax:
+        budgetMax !== undefined && budgetMax !== "" ? Number(budgetMax) : 0,
       deadline,
       category,
     });
 
     await newJob.save();
 
-    res.status(201).json({
+    // -----------------------------------------
+    // Response
+    // -----------------------------------------
+
+    return res.status(201).json({
       success: true,
       message: "Job Posted Successfully",
       job: newJob,
@@ -179,9 +227,10 @@ router.post("/postjob", async (req, res) => {
   } catch (error) {
     console.error("Post Job Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to post job",
+      error: error.message,
     });
   }
 });
@@ -224,6 +273,7 @@ router.post("/freelancerprofile", async (req, res) => {
       website,
       title,
       bio,
+      category,
       experience,
       projects,
       hourlyRate,
@@ -277,6 +327,7 @@ router.post("/freelancerprofile", async (req, res) => {
           website: website?.trim() || "",
 
           title: title?.trim() || "",
+          category: category?.trim() || "",
 
           bio: bio?.trim() || "",
 
@@ -584,41 +635,58 @@ router.get("/postjobs/:id", async (req, res) => {
     });
   }
 });
+// =====================================================
+// SUBMIT PROPOSAL
+// =====================================================
 
-router.post("/submit", async (req, res) => {
+// =====================================================
+// SUBMIT PROPOSAL
+// =====================================================
+// =========================================================
+// SUBMIT PROPOSAL
+// =========================================================
+
+router.post("/proposals/:projectId", async (req, res) => {
   try {
-    const {
-      projectId,
-      freelancerId,
-      clientId,
-      bidAmount,
-      deliveryTime,
-      coverLetter,
-    } = req.body;
+    const { freelancerId, bidAmount, deliveryTime, coverLetter } = req.body;
 
-    // -----------------------------
-    // Validation
-    // -----------------------------
+    // -----------------------------------------
+    // Validate fields
+    // -----------------------------------------
 
-    if (
-      !projectId ||
-      !freelancerId ||
-      !clientId ||
-      !bidAmount ||
-      !deliveryTime ||
-      !coverLetter
-    ) {
+    if (!freelancerId) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Freelancer ID is required",
       });
     }
 
-    // -----------------------------
-    // Check project
-    // -----------------------------
+    if (!bidAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Bid amount is required",
+      });
+    }
 
-    const project = await PostJob.findById(projectId);
+    if (!deliveryTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery time is required",
+      });
+    }
+
+    if (!coverLetter || !coverLetter.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cover letter is required",
+      });
+    }
+
+    // -----------------------------------------
+    // Find project
+    // -----------------------------------------
+
+    const project = await PostJob.findById(req.params.projectId);
 
     if (!project) {
       return res.status(404).json({
@@ -627,12 +695,44 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    // -----------------------------
+    // -----------------------------------------
+    // Check project client
+    // -----------------------------------------
+
+    if (!project.clientId) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This project does not have a client ID. Please create a new project.",
+      });
+    }
+
+    // -----------------------------------------
+    // Check freelancer
+    // -----------------------------------------
+
+    const freelancer = await User.findById(freelancerId);
+
+    if (!freelancer) {
+      return res.status(404).json({
+        success: false,
+        message: "Freelancer not found",
+      });
+    }
+
+    if (freelancer.role !== "freelancer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only freelancers can submit proposals",
+      });
+    }
+
+    // -----------------------------------------
     // Check duplicate proposal
-    // -----------------------------
+    // -----------------------------------------
 
     const existingProposal = await Proposal.findOne({
-      projectId,
+      projectId: project._id,
       freelancerId,
     });
 
@@ -643,32 +743,39 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    // -----------------------------
+    // -----------------------------------------
     // Create proposal
-    // -----------------------------
+    // -----------------------------------------
 
     const proposal = await Proposal.create({
-      projectId,
-      freelancerId,
-      clientId,
-      bidAmount,
-      deliveryTime,
-      coverLetter,
+      projectId: project._id,
+
+      freelancerId: freelancer._id,
+
+      clientId: project.clientId,
+
+      bidAmount: Number(bidAmount),
+
+      deliveryTime: Number(deliveryTime),
+
+      coverLetter: coverLetter.trim(),
+
+      status: "pending",
     });
 
-    // -----------------------------
+    // -----------------------------------------
     // Increase proposal count
-    // -----------------------------
+    // -----------------------------------------
 
     project.proposals = (project.proposals || 0) + 1;
 
     await project.save();
 
-    // -----------------------------
-    // Response
-    // -----------------------------
+    // -----------------------------------------
+    // Success response
+    // -----------------------------------------
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Proposal submitted successfully",
       proposal,
@@ -676,100 +783,88 @@ router.post("/submit", async (req, res) => {
   } catch (error) {
     console.error("Submit Proposal Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to submit proposal",
       error: error.message,
     });
   }
 });
 
-// =====================================================
+// =========================================================
 // GET PROPOSALS FOR A PROJECT
-// =====================================================
+// =========================================================
 
-router.get("/project/:projectId", async (req, res) => {
+router.get("/proposals/project/:projectId", async (req, res) => {
   try {
     const proposals = await Proposal.find({
       projectId: req.params.projectId,
     })
-      .populate("freelancerId")
+      .populate("freelancerId", "fullName email role")
+      .populate("clientId", "fullName email role")
+      .populate("projectId")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       proposals,
     });
   } catch (error) {
     console.error("Get Project Proposals Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to get project proposals",
+      error: error.message,
     });
   }
 });
 
-// =====================================================
-// GET PROPOSALS BY FREELANCER
-// =====================================================
+// =========================================================
+// GET PROPOSALS FOR A FREELANCER
+// =========================================================
 
-router.get("/freelancer/:freelancerId", async (req, res) => {
+router.get("/proposals/freelancer/:freelancerId", async (req, res) => {
   try {
     const proposals = await Proposal.find({
       freelancerId: req.params.freelancerId,
     })
       .populate("projectId")
+      .populate("clientId", "fullName email role")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       proposals,
     });
   } catch (error) {
     console.error("Get Freelancer Proposals Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to get freelancer proposals",
+      error: error.message,
     });
   }
 });
 
-// =====================================================
-// GET SINGLE PROPOSAL
-// =====================================================
 
-router.get("/proposals/:project._id", async (req, res) => {
-  try {
-    const proposal = await Proposal.findById(req.params.proposalId)
-      .populate("projectId")
-      .populate("freelancerId")
-      .populate("clientId");
-
-    if (!proposal) {
-      return res.status(404).json({
-        success: false,
-        message: "Proposal not found",
-      });
-    }
-
+router.get("/postjobs/client/:clientId", async (req, res) => {
+  try{
+    const  { clientId } = req.params;
+    const jobs = await PostJob.find({ clientId }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
-      proposal,
+      jobs,
     });
-  } catch (error) {
-    console.error("Get Proposal Error:", error);
 
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+  }catch(error){
+    console.error("Get Client PostJobs Error:", error);
   }
-});
-
+})
 // =========================================================
 // EXPORT ROUTER
 // =========================================================
+
 
 module.exports = router;

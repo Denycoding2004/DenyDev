@@ -1,22 +1,56 @@
 const mongoose = require("mongoose");
 
 const postJobSchema = new mongoose.Schema({
-  clientId: String,
-  clientName: String,
-  title: String,
-  companyName: String,
-  description: String,
-  skills: [String],
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 
-  budgetMin: Number,
-  budgetMax: Number,
+  clientName: {
+    type: String,
+    required: true,
+  },
 
-  deadline: String,
-  category: String,
+  title: {
+    type: String,
+    required: true,
+  },
+
+  companyName: {
+    type: String,
+  },
+
+  description: {
+    type: String,
+    required: true,
+  },
+
+  skills: {
+    type: [String],
+    default: [],
+  },
+
+  budgetMin: {
+    type: Number,
+  },
+
+  budgetMax: {
+    type: Number,
+  },
+
+  deadline: {
+    type: String,
+  },
+
+  category: {
+    type: String,
+  },
 
   status: {
     type: String,
-    default: "Open",
+    enum: ["open", "in-progress", "completed", "cancelled"],
+    default: "open",
   },
 
   proposals: {

@@ -105,32 +105,6 @@ function Freelancerdashboard() {
 
     return matchesSearch && matchesCategory;
   });
-  const categories = [
-    {
-      name: "Web Development",
-      icon: <FaCode />,
-    },
-    {
-      name: "Data Science & Analytics",
-      icon: <FaChartBar />,
-    },
-    {
-      name: "AI & Machine Learning",
-      icon: <FaRobot />,
-    },
-    {
-      name: "Cybersecurity",
-      icon: <FaShieldAlt />,
-    },
-    {
-      name: "Cloud & DevOps",
-      icon: <FaCloud />,
-    },
-    {
-      name: "Maintenance & Support",
-      icon: <FaTools />,
-    },
-  ];
   return (
     <>
       <Freelancerheader />
@@ -182,6 +156,7 @@ function Freelancerdashboard() {
             TOP PROJECTS + FILTER
         ===================================================== */}
 
+        {/* ================= CLEAR FILTERS ================= */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h2 className="text-white text-2xl sm:text-3xl font-bold">
@@ -197,66 +172,31 @@ function Freelancerdashboard() {
 
           <button
             type="button"
-            onClick={() => setShowFilters()}
-            className="flex items-center gap-2 bg-white text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition shadow-sm"
+            onClick={() => {
+              if (selectedCategory || search) {
+                clearFilters();
+              } else {
+                setShowFilters(!showFilters);
+              }
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition shadow-sm ${
+              selectedCategory || search
+                ? " bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition"
+                : "bg-white text-gray-800 hover:bg-gray-100"
+            }`}
           >
-            <IoFilter className="text-purple-600" size={18} />
-            Filter
+            {selectedCategory || search ? (
+              <>
+                <FaTimes size={18} />
+                Clear Filter
+              </>
+            ) : (
+              <>
+                <IoFilter className="text-purple-600" size={18} />
+                Filter
+              </>
+            )}
           </button>
-        </div>
-
-        <div className="  p-5 mb-8">
-          <div className="flex gap-3">
-            {categories.map((category) => (
-              <button
-                key={category.name}
-                type="button"
-                onClick={() => handleCategory(category.name)}
-                className={`group flex items-center gap-2 px-4 py-2.5 rounded-xl
-        text-sm font-medium border transition-all duration-300
-        ${
-          selectedCategory === category.name
-            ? "bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/30"
-            : "bg-white/10 border-white/10 text-gray-200 hover:bg-purple-600/70 hover:border-purple-500 hover:text-white hover:-translate-y-0.5"
-        }`}
-              >
-                {/* Icon */}
-                <span
-                  className={`text-base transition-transform duration-300
-          ${
-            selectedCategory === category.name
-              ? "text-white"
-              : "text-purple-400 group-hover:text-white group-hover:scale-110"
-          }`}
-                >
-                  {category.icon}
-                </span>
-
-                {/* Category Name */}
-                <span>{category.name}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* ================= CLEAR FILTERS ================= */}
-
-          {(search || selectedCategory) && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="
-  mt-5 absolute right-[170px] bottom-[218px]
-  flex items-center gap-2
-  text-sm text-white
-  hover:text-base
-  transition-all duration-300
-  hover:-translate-y-0.5
-"
-            >
-              <FaTimes size={18} />
-              Clear Filters
-            </button>
-          )}
         </div>
 
         {/* =====================================================

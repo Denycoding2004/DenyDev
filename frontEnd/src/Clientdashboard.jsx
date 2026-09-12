@@ -44,9 +44,17 @@ function Clientdashboard() {
 
     fetchDevelopers();
   }, []);
+
+  const formatName = (name) => {
+    return String(name || "")
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
   const handleCategory = (category) => {
     setSelectedCategory(category);
-    setSearchText("");
   };
   const filteredDevelopers = developers.filter((dev) => {
     const text = searchText.toLowerCase().trim();
@@ -55,6 +63,8 @@ function Clientdashboard() {
       .toLowerCase()
       .trim();
 
+    const selected = selectedCategory.toLowerCase().trim();
+
     const matchesSearch =
       !text ||
       dev.name?.toLowerCase().includes(text) ||
@@ -62,9 +72,7 @@ function Clientdashboard() {
       developerCategory.includes(text) ||
       dev.skills?.some((skill) => skill.toLowerCase().includes(text));
 
-    const matchesCategory =
-      !selectedCategory ||
-      developerCategory === selectedCategory.toLowerCase().trim();
+    const matchesCategory = !selectedCategory || developerCategory === selected;
 
     return matchesSearch && matchesCategory;
   });
@@ -106,91 +114,9 @@ function Clientdashboard() {
           <p className="text-gray-400 mt-4 text-sm sm:text-base">
             Browse categories and hire top talent.
           </p>
-          {(searchText || selectedCategory) && (
-            <div className="absolute  right-14 flex justify-end">
-              {" "}
-              <button
-                onClick={() => {
-                  setSearchText("");
-                  setSelectedCategory("");
-                }}
-                className="bg-white text-purple-900 px-5 py-2 rounded-lg font-medium hover:bg-gray-200 transition shadow-md"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
         </div>
 
         {/* CATEGORIES */}
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-5 mb-5">
-          {[
-            {
-              icon: <FaCode />,
-              title: "Web Development",
-              value: "Web Development",
-            },
-            {
-              icon: <FaChartBar />,
-              title: "Data Science & Analytics",
-              value: "Data Science & Analytics",
-            },
-            {
-              icon: <FaRobot />,
-              title: "AI & Machine Learning",
-              value: "AI & Machine Learning",
-            },
-            {
-              icon: <FaShieldAlt />,
-              title: "Cybersecurity",
-              value: "Cybersecurity",
-            },
-            {
-              icon: <FaCloud />,
-              title: "Cloud & DevOps",
-              value: "Cloud & DevOps",
-            },
-            {
-              icon: <FaTools />,
-              title: "Maintenance & Support",
-              value: "Maintenance & Support",
-            },
-          ].map((category, index) => (
-            <button
-              key={index}
-              onClick={() => handleCategory(category.value)}
-              className="
-                group
-                rounded-2xl
-                min-h-[135px]
-                flex
-                flex-col
-                items-center
-                justify-center
-                text-center
-                px-4
-                cursor-pointer
-                border
-                border-white/10
-                bg-white/[0.06]
-                backdrop-blur-sm
-                text-white
-                transition-all
-                duration-300
-                hover:bg-white
-                hover:text-black
-                hover:-translate-y-1
-                hover:shadow-2xl
-              "
-            >
-              <div className="text-4xl mb-3 text-purple-400 group-hover:text-purple-600 transition">
-                {category.icon}
-              </div>
-              <h2 className="font-semibold text-sm">{category.title}</h2>
-            </button>
-          ))}
-        </div>
 
         {/* DEVELOPERS */}
         <div>
@@ -296,8 +222,9 @@ function Clientdashboard() {
 
                       <div>
                         <h3 className="text-lg font-bold text-white">
-                          {dev.name || "Unnamed Freelancer"}
+                          {formatName(dev.name) || "Unnamed Freelancer"}
                         </h3>
+
                         <p className="text-xs text-gray-400 mt-1">
                           {dev.title || "No title set"}
                         </p>

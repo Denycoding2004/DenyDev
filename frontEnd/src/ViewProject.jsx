@@ -35,7 +35,7 @@ function ViewProject() {
   const [proposalLoading, setProposalLoading] = useState(false);
 
   const [proposalSuccess, setProposalSuccess] = useState(false);
-
+  const [proposalSubmitted, setProposalSubmitted] = useState(false);
   const [proposalError, setProposalError] = useState("");
 
   const [formData, setFormData] = useState({
@@ -126,7 +126,15 @@ function ViewProject() {
   const handleSubmitProposal = async (e) => {
     e.preventDefault();
 
+    // -----------------------------------------
+    // Clear previous errors
+    // -----------------------------------------
+
     setProposalError("");
+
+    // -----------------------------------------
+    // Get logged-in user
+    // -----------------------------------------
 
     const storedUser = localStorage.getItem("user");
 
@@ -134,6 +142,7 @@ function ViewProject() {
       setProposalError(
         "Please login as a freelancer before submitting a proposal.",
       );
+
       return;
     }
 
@@ -142,78 +151,99 @@ function ViewProject() {
     try {
       user = JSON.parse(storedUser);
     } catch (error) {
-      setProposalError("Invalid user session. Please login again.");
+      console.error("User Parse Error:", error);
+
+      setProposalError("Invalid login information. Please login again.");
+
       return;
     }
 
-    if (!formData.bidAmount) {
-      setProposalError("Please enter your bid amount.");
-      return;
-    }
-
-    if (Number(formData.bidAmount) <= 0) {
-      setProposalError("Bid amount must be greater than ₹0.");
-      return;
-    }
-
-    if (!formData.deliveryTime) {
-      setProposalError("Please enter your delivery time.");
-      return;
-    }
-
-    if (Number(formData.deliveryTime) <= 0) {
-      setProposalError("Delivery time must be greater than 0 days.");
-      return;
-    }
-
-    if (!formData.coverLetter.trim()) {
-      setProposalError("Please write a cover letter.");
-      return;
-    }
-
-    if (formData.coverLetter.trim().length < 20) {
-      setProposalError("Cover letter should contain at least 20 characters.");
-      return;
-    }
+    // -----------------------------------------
+    // Get freelancer ID
+    // -----------------------------------------
 
     const freelancerId = user._id || user.id || user.freelancerId;
 
     if (!freelancerId) {
       setProposalError("Freelancer information not found. Please login again.");
+
       return;
     }
 
-    const clientId = project.title;
+    // -----------------------------------------
+    // Validate bid amount
+    // -----------------------------------------
 
-    if (!clientId) {
-      setProposalError(
-        "This project is missing client information and can't accept proposals yet.",
-      );
+    if (!formData.bidAmount) {
+      setProposalError("Please enter your bid amount.");
+
       return;
     }
+
+    if (Number(formData.bidAmount) <= 0) {
+      setProposalError("Bid amount must be greater than 0.");
+
+      return;
+    }
+
+    // -----------------------------------------
+    // Validate delivery time
+    // -----------------------------------------
+
+    if (!formData.deliveryTime) {
+      setProposalError("Please enter your delivery time.");
+
+      return;
+    }
+
+    if (Number(formData.deliveryTime) <= 0) {
+      setProposalError("Delivery time must be greater than 0.");
+
+      return;
+    }
+
+    // -----------------------------------------
+    // Validate cover letter
+    // -----------------------------------------
+
+    if (!formData.coverLetter.trim()) {
+      setProposalError("Please write a cover letter.");
+
+      return;
+    }
+
+    // -----------------------------------------
+    // Submit proposal
+    // -----------------------------------------
 
     try {
       setProposalLoading(true);
 
       const res = await API.post(`/proposals/${project._id}`, {
-        projectId: project._id,
         freelancerId,
-        clientId,
         bidAmount: Number(formData.bidAmount),
         deliveryTime: Number(formData.deliveryTime),
         coverLetter: formData.coverLetter.trim(),
       });
 
+      // -----------------------------------------
+      // Success
+      // -----------------------------------------
+
       if (res.data.success) {
         setProposalSuccess(true);
+        setProposalSubmitted(true);
 
+        // Update proposal count immediately
         setProject((prev) => ({
           ...prev,
           proposals: (prev.proposals || 0) + 1,
         }));
 
+        // Close modal after 2 seconds
         setTimeout(() => {
           setShowProposalModal(false);
+
           setProposalSuccess(false);
 
           setFormData({
@@ -225,7 +255,7 @@ function ViewProject() {
       }
     } catch (error) {
       console.log("Submit Proposal Error:", error);
-
+      console.log("Backend Response:", error.response?.data);
       setProposalError(
         error.response?.data?.message ||
           "Failed to submit proposal. Please try again.",
@@ -448,12 +478,25 @@ function ViewProject() {
                   <button
                     type="button"
                     onClick={handleSendProposal}
-                    className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition"
+                    disabled={proposalSubmitted}
+                    className={`w-full flex items-center justify-center gap-2 text-white py-3 rounded-xl font-semibold transition ${
+                      proposalSubmitted
+                        ? "bg-green-600 cursor-not-allowed"
+                        : "bg-purple-600 hover:bg-purple-700"
+                    }`}
                   >
-                    <Send size={18} />
-                    Send Proposal
+                    {proposalSubmitted ? (
+                      <>
+                        <CheckCircle size={18} />
+                        Proposal Submitted
+                      </>
+                    ) : (
+                      <>
+                        <Send size={18} />
+                        Send Proposal
+                      </>
+                    )}
                   </button>
-
                   <p className="text-gray-500 text-xs text-center mt-3">
                     Submit your proposal to this client
                   </p>

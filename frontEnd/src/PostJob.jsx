@@ -4,6 +4,26 @@ import { useNavigate } from "react-router-dom";
 import Api from "./API";
 
 function PostJob() {
+  const navigate = useNavigate();
+
+  // -----------------------------------------
+  // Get logged-in client
+  // -----------------------------------------
+
+  const storedUser = localStorage.getItem("user");
+
+  let user = null;
+
+  try {
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error("User Parse Error:", error);
+  }
+
+  // -----------------------------------------
+  // Job form state
+  // -----------------------------------------
+
   const [job, setJob] = useState({
     title: "",
     companyName: "",
@@ -16,9 +36,10 @@ function PostJob() {
     otherCategory: "",
   });
 
-  const navigate = useNavigate();
-
+  // -----------------------------------------
   // Handle input changes
+  // -----------------------------------------
+
   const handleChange = (e) => {
     setJob({
       ...job,
@@ -26,47 +47,123 @@ function PostJob() {
     });
   };
 
+  // -----------------------------------------
   // Submit job
+  // -----------------------------------------
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      // -----------------------------------------
+      // Check login
+      // -----------------------------------------
 
+      const storedUser = localStorage.getItem("user");
+
+      if (!storedUser) {
+        alert("Please login as a client first.");
+        navigate("/login");
+        return;
+      }
+
+      const user = JSON.parse(storedUser);
+
+      // -----------------------------------------
+      // Get client ID
+      // -----------------------------------------
+
+      const clientId = user.id || user._id;
+
+      if (!clientId) {
+        alert("Client information not found. Please login again.");
+        return;
+      }
+
+      // -----------------------------------------
+      // Check client role
+      // -----------------------------------------
+
+      if (user.role !== "client") {
+        alert("Only clients can post jobs.");
+        return;
+      }
+
+      // -----------------------------------------
       // Convert skills into array
+      // -----------------------------------------
+
       const skillsArray = job.skills
         .split(/[,\s]+/)
         .map((skill) => skill.trim())
         .filter((skill) => skill !== "");
 
+      // -----------------------------------------
       // Category
-      const finalcategory =
-        job.category === "Other" ? job.otherCategory : job.category;
+      // -----------------------------------------
 
-      // Budget range
-      const budget = `₹${Number(job.budgetMin).toLocaleString(
-        "en-IN",
-      )} - ₹${Number(job.budgetMax).toLocaleString("en-IN")}`;
+      const finalCategory =
+        job.category === "Other" ? job.otherCategory.trim() : job.category;
 
+      // -----------------------------------------
+      // Validate category
+      // -----------------------------------------
+
+      if (!finalCategory) {
+        alert("Please select a category.");
+        return;
+      }
+
+      // -----------------------------------------
+      // Validate budget
+      // -----------------------------------------
+
+      if (Number(job.budgetMin) > Number(job.budgetMax)) {
+        alert("Minimum budget cannot be greater than maximum budget.");
+        return;
+      }
+
+      // -----------------------------------------
       // Project data
+      // -----------------------------------------
+
       const projectData = {
-        clientId: user._id,
+        clientId: clientId,
         clientName: user.fullName,
+
         title: job.title,
         companyName: job.companyName,
         description: job.description,
+
         skills: skillsArray,
+
         budgetMin: Number(job.budgetMin),
         budgetMax: Number(job.budgetMax),
-        deadline: job.deadline,
-        category: finalcategory,
-      };
-      console.log(projectData);
 
+        deadline: job.deadline,
+
+        category: finalCategory,
+      };
+
+      // -----------------------------------------
+      // Debug
+      // -----------------------------------------
+
+      console.log("Project Data:", projectData);
+
+      // -----------------------------------------
       // Send data to backend
+      // -----------------------------------------
+
       const res = await Api.post("/postjob", projectData);
 
-      if (res.data.message === "Job Posted Successfully") {
+      console.log("Post Job Response:", res.data);
+
+      // -----------------------------------------
+      // Success
+      // -----------------------------------------
+
+      if (res.data.success) {
         alert("Job Posted Successfully 🚀");
 
         // Clear form
@@ -82,19 +179,29 @@ function PostJob() {
           otherCategory: "",
         });
 
+        // Go to client dashboard
         navigate("/clientdashboard");
       } else {
-        alert("Job Posting Failed");
+        alert(res.data.message || "Job Posting Failed");
       }
-    } catch (e) {
-      console.log(e);
-      alert("Something went wrong while posting the job");
+    } catch (error) {
+      console.error("Post Job Error:", error);
+
+      alert(
+        error.response?.data?.message ||
+          "Something went wrong while posting the job",
+      );
     }
   };
+
+  // -----------------------------------------
+  // UI
+  // -----------------------------------------
 
   return (
     <div className="min-h-screen bg-[#10002b] flex items-center justify-center p-3 xs:p-4 sm:p-6 relative">
       {/* Home Button */}
+
       <button
         onClick={() => navigate("/clientdashboard")}
         className="absolute top-3 left-3 sm:top-6 sm:left-6 p-2 z-10"
@@ -106,18 +213,22 @@ function PostJob() {
       </button>
 
       {/* Form */}
+
       <form
         onSubmit={handleSubmit}
         className="bg-white w-full max-w-3xl p-4 sm:p-6 md:p-8 rounded-xl shadow-lg mt-14 sm:mt-10 md:mt-0"
       >
         {/* Heading */}
+
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6">
           Post a Job
         </h2>
 
         {/* Job Title + Company Name */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           {/* Job Title */}
+
           <div>
             <label className="block font-medium text-sm mb-2">Job Title</label>
 
@@ -133,6 +244,7 @@ function PostJob() {
           </div>
 
           {/* Company Name */}
+
           <div>
             <label className="block font-medium text-sm mb-2">
               Company Name
@@ -151,6 +263,7 @@ function PostJob() {
         </div>
 
         {/* Description */}
+
         <div className="mb-4">
           <label className="block font-medium text-sm mb-2">
             Job Description
@@ -167,6 +280,7 @@ function PostJob() {
         </div>
 
         {/* Skills */}
+
         <div className="mb-4">
           <label className="block font-medium text-sm mb-2">
             Required Skills
@@ -188,8 +302,10 @@ function PostJob() {
         </div>
 
         {/* Budget + Deadline */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           {/* Budget */}
+
           <div>
             <label className="block font-medium text-sm mb-2">
               Budget Range
@@ -197,6 +313,7 @@ function PostJob() {
 
             <div className="flex items-center gap-2">
               {/* Minimum Budget */}
+
               <div className="relative w-full">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
                   ₹
@@ -217,6 +334,7 @@ function PostJob() {
               <span className="text-gray-500 font-medium">-</span>
 
               {/* Maximum Budget */}
+
               <div className="relative w-full">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
                   ₹
@@ -239,6 +357,7 @@ function PostJob() {
           </div>
 
           {/* Deadline */}
+
           <div>
             <label className="block font-medium text-sm mb-2">Deadline</label>
 
@@ -255,13 +374,14 @@ function PostJob() {
         </div>
 
         {/* Category + Other Category */}
-        {/* Category + Other Category */}
+
         <div
           className={`grid grid-cols-1 ${
             job.category === "Other" ? "sm:grid-cols-2" : "sm:grid-cols-1"
           } gap-4 mb-6`}
         >
           {/* Category */}
+
           <div>
             <label className="block font-medium text-sm mb-2">Category</label>
 
@@ -297,6 +417,7 @@ function PostJob() {
           </div>
 
           {/* Other Category */}
+
           {job.category === "Other" && (
             <div>
               <label className="block font-medium text-sm mb-2">
@@ -317,6 +438,7 @@ function PostJob() {
         </div>
 
         {/* Submit */}
+
         <button
           type="submit"
           className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"

@@ -189,7 +189,7 @@ function ClientMessages() {
       <Clientheader />
 
       <main className="mt-1">
-        <div className="h-[calc(100vh-190px)] min-h-[600px] flex bg-[#180936] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="h-[calc(100vh-190px)] min-h-[700px] flex bg-[#180936] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
           {/* LEFT SIDE - CONVERSATIONS */}
           <div className="w-full md:w-[340px] lg:w-[380px] border-r border-white/10 flex flex-col">
             <div className="p-4 border-b border-white/10">
@@ -266,7 +266,7 @@ function ClientMessages() {
             {selectedChat && (
               <>
                 {/* CHAT HEADER */}
-                <div className="h-[76px] px-5 flex items-center justify-between border-b border-white/10 bg-[#1b0a3d]">
+                <div className="h-[82px] px-5 flex items-center justify-between border-b border-white/10 bg-[#1b0a3d]">
                   <div className="flex items-center gap-3">
                     <img
                       src={selectedChat.image}

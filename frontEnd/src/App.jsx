@@ -16,6 +16,7 @@ import Freelancerproject from "./Freelancerproject";
 import Freelancerprofile from "./Freelancerprofile";
 import FreelancerDetail from "./FreelancerDetail";
 import ViewProject from "./ViewProject";
+import ClientViewProject from "./ClientViewProject";
 
 function App() {
   return (
@@ -40,6 +41,10 @@ function App() {
           <Route path="/freelancerprofile" element={<Freelancerprofile />} />
           <Route path="/freelancer/:userId" element={<FreelancerDetail />} />
           <Route path="/project/:projectId" element={<ViewProject />} />
+          <Route
+            path="/client/project/:projectId"
+            element={<ClientViewProject />}
+          />
           <Route
             path="/freelancermessage/:clientId?"
             element={<Freelancermessage />}
