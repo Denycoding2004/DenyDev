@@ -52,6 +52,16 @@ const postJobSchema = new mongoose.Schema({
     enum: ["open", "in-progress", "completed", "cancelled"],
     default: "open",
   },
+  status: {
+    type: String,
+    enum: ["open", "in-progress", "completed", "cancelled"],
+    default: "open",
+  },
+  assignedFreelancerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
 
   proposals: {
     type: Number,

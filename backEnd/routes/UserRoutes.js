@@ -848,23 +848,84 @@ router.get("/proposals/freelancer/:freelancerId", async (req, res) => {
   }
 });
 
-
 router.get("/postjobs/client/:clientId", async (req, res) => {
-  try{
-    const  { clientId } = req.params;
+  try {
+    const { clientId } = req.params;
+
     const jobs = await PostJob.find({ clientId }).sort({ createdAt: -1 });
+
     res.status(200).json({
       success: true,
       jobs,
     });
-
-  }catch(error){
+  } catch (error) {
     console.error("Get Client PostJobs Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch your projects",
+    });
   }
-})
+});
+
+// =========================================================
+// ACCEPT A PROPOSAL
+// =========================================================
+
+router.patch("/proposals/:proposalId/accept", async (req, res) => {
+  try {
+    const { proposalId } = req.params;
+
+    const proposal = await Proposal.findById(proposalId);
+
+    if (!proposal) {
+      return res.status(404).json({
+        success: false,
+        message: "Proposal not found",
+      });
+    }
+
+    if (proposal.status === "accepted") {
+      return res.status(400).json({
+        success: false,
+        message: "This proposal has already been accepted",
+      });
+    }
+
+    // Mark this one accepted
+    proposal.status = "accepted";
+    await proposal.save();
+
+    // Reject every other proposal on the same project
+    await Proposal.updateMany(
+      { projectId: proposal.projectId, _id: { $ne: proposal._id } },
+      { $set: { status: "rejected" } },
+    );
+
+    // Update the job itself
+    await PostJob.findByIdAndUpdate(proposal.projectId, {
+      status: "in-progress",
+      assignedFreelancerId: proposal.freelancerId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Proposal accepted",
+      proposal,
+    });
+  } catch (error) {
+    console.error("Accept Proposal Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to accept proposal",
+      error: error.message,
+    });
+  }
+});
+
 // =========================================================
 // EXPORT ROUTER
 // =========================================================
-
 
 module.exports = router;

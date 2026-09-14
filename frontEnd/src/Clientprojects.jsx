@@ -8,9 +8,10 @@ import {
 } from "lucide-react";
 import Clientheader from "./Clientheader";
 import API from "./API";
-
+import { useNavigate } from "react-router-dom";
 function Clientprojects() {
   const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -163,6 +164,7 @@ function Clientprojects() {
 
                   <button
                     type="button"
+                    onClick={() => navigate(`/clientprojects/${project._id}`)}
                     className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition"
                   >
                     View Project

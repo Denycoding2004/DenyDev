@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
@@ -5,360 +7,262 @@ import {
   DollarSign,
   MoreVertical,
 } from "lucide-react";
-
 import Freelancerheader from "./Freelancerheader";
+import API from "./API";
+
+const STATUS_STYLES = {
+  pending: "bg-yellow-500/20 text-yellow-300",
+  accepted: "bg-green-500/20 text-green-300",
+  rejected: "bg-red-500/20 text-red-300",
+};
+
+const STATUS_LABELS = {
+  pending: "Pending",
+  accepted: "Accepted",
+  rejected: "Rejected",
+};
 
 function Freelancerproject() {
-  const projects = [
-    {
-      title: "E-Commerce Website",
-      category: "Full Stack",
-      client: "ABC Company",
-      budget: "$1,500",
-      progress: 72,
-      due: "Aug 28",
-      status: "In Progress",
-      statusColor: "bg-purple-500/20 text-purple-300",
-    },
+  const freelancer = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
 
-    {
-      title: "Mobile App Development",
-      category: "React Native",
-      client: "Tech Solutions",
-      budget: "$2,500",
-      progress: 50,
-      due: "Sep 10",
-      status: "Pending",
-      statusColor: "bg-yellow-500/20 text-yellow-300",
-    },
+  const [proposals, setProposals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
 
-    {
-      title: "Portfolio Website",
-      category: "Frontend",
-      client: "Creative Studio",
-      budget: "$800",
-      progress: 100,
-      due: "Completed",
-      status: "Completed",
-      statusColor: "bg-green-500/20 text-green-300",
-    },
-  ];
+  useEffect(() => {
+    const fetchMyProposals = async () => {
+      const freelancerId = freelancer?._id || freelancer?.id;
+
+      if (!freelancerId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await API.get(`/proposals/freelancer/${freelancerId}`);
+
+        if (res.data.success) {
+          setProposals(res.data.proposals);
+        }
+      } catch (error) {
+        console.log("Fetch My Proposals Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyProposals();
+  }, []);
+
+  const totalProjects = proposals.length;
+  const activeCount = proposals.filter((p) => p.status === "pending").length;
+  const acceptedCount = proposals.filter((p) => p.status === "accepted").length;
+  const rejectedCount = proposals.filter((p) => p.status === "rejected").length;
+
+  const tabs = ["All", "Pending", "Accepted", "Rejected"];
+
+  const filteredProposals = proposals.filter((p) => {
+    const text = searchText.toLowerCase().trim();
+
+    const matchesSearch =
+      !text ||
+      p.projectId?.title?.toLowerCase().includes(text) ||
+      p.projectId?.category?.toLowerCase().includes(text) ||
+      p.clientId?.fullName?.toLowerCase().includes(text);
+
+    const matchesTab =
+      activeTab === "All" ||
+      p.status?.toLowerCase() === activeTab.toLowerCase();
+
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#10002b] to-[#240046] text-white">
-      
       <Freelancerheader />
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-
-        {/* Page Heading */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-            My Projects
-          </h1>
-
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">My Projects</h1>
           <p className="text-purple-200 text-base sm:text-lg">
-            Manage and track your freelance projects
+            Manage and track your freelance proposals
           </p>
         </div>
 
-
-        {/* Statistics */}
+        {/* Statistics — all real, derived from actual proposal statuses */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-
-          {/* Total Projects */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
-            <p className="text-purple-200 text-sm mb-2">
-              Total Projects
-            </p>
-
-            <h2 className="text-3xl font-bold">
-              12
-            </h2>
+            <p className="text-purple-200 text-sm mb-2">Total Proposals</p>
+            <h2 className="text-3xl font-bold">{totalProjects}</h2>
           </div>
 
-
-          {/* Active Projects */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
-            <p className="text-purple-200 text-sm mb-2">
-              Active
-            </p>
-
-            <h2 className="text-3xl font-bold">
-              4
-            </h2>
+            <p className="text-purple-200 text-sm mb-2">Pending</p>
+            <h2 className="text-3xl font-bold">{activeCount}</h2>
           </div>
 
-
-          {/* Completed */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
-            <p className="text-purple-200 text-sm mb-2">
-              Completed
-            </p>
-
-            <h2 className="text-3xl font-bold">
-              7
-            </h2>
+            <p className="text-purple-200 text-sm mb-2">Accepted</p>
+            <h2 className="text-3xl font-bold">{acceptedCount}</h2>
           </div>
 
-
-          {/* Total Earnings */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
-            <p className="text-purple-200 text-sm mb-2">
-              Total Earnings
-            </p>
-
-            <h2 className="text-3xl font-bold">
-              $8,450
-            </h2>
+            <p className="text-purple-200 text-sm mb-2">Rejected</p>
+            <h2 className="text-3xl font-bold">{rejectedCount}</h2>
           </div>
-
         </div>
-
 
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-
-          {/* Search */}
           <div className="relative flex-1">
-
             <Search
               size={20}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-300"
             />
-
             <input
               type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search projects..."
               className="w-full bg-white/10 border border-white/10 rounded-xl py-3 pl-12 pr-4 outline-none text-white placeholder-purple-300 focus:border-purple-500"
             />
-
           </div>
 
-
-          {/* Filter */}
           <button
             type="button"
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/10 border border-white/10 hover:bg-white/20 transition"
           >
-
             <SlidersHorizontal size={18} />
-
             Filter
-
           </button>
-
         </div>
 
-
-        {/* Project Tabs */}
+        {/* Tabs */}
         <div className="flex flex-wrap gap-3 mb-8">
-
-          <button
-            type="button"
-            className="px-5 py-2 rounded-full bg-purple-600 text-white"
-          >
-            All
-          </button>
-
-          <button
-            type="button"
-            className="px-5 py-2 rounded-full bg-white/10 text-purple-200 hover:bg-white/20 transition"
-          >
-            Active
-          </button>
-
-          <button
-            type="button"
-            className="px-5 py-2 rounded-full bg-white/10 text-purple-200 hover:bg-white/20 transition"
-          >
-            Pending
-          </button>
-
-          <button
-            type="button"
-            className="px-5 py-2 rounded-full bg-white/10 text-purple-200 hover:bg-white/20 transition"
-          >
-            Completed
-          </button>
-
-          <button
-            type="button"
-            className="px-5 py-2 rounded-full bg-white/10 text-purple-200 hover:bg-white/20 transition"
-          >
-            Cancelled
-          </button>
-
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2 rounded-full transition ${
+                activeTab === tab
+                  ? "bg-purple-600 text-white"
+                  : "bg-white/10 text-purple-200 hover:bg-white/20"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
+        {loading && (
+          <p className="text-purple-200 text-center py-10">
+            Loading your proposals...
+          </p>
+        )}
+
+        {!loading && filteredProposals.length === 0 && (
+          <p className="text-purple-200 text-center py-10">
+            {activeTab === "All" && !searchText
+              ? "You haven't sent any proposals yet."
+              : "No proposals found for this filter."}
+          </p>
+        )}
 
         {/* Project Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!loading && filteredProposals.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProposals.map((p) => (
+              <div
+                key={p._id}
+                className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 hover:bg-white/[0.14] transition"
+              >
+                {/* Card Top */}
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 mb-3">
+                      {p.projectId?.category || "Uncategorized"}
+                    </span>
 
-          {projects.map((project, index) => (
+                    <h2 className="text-xl font-bold">
+                      {p.projectId?.title || "Project removed"}
+                    </h2>
+                  </div>
 
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 hover:bg-white/[0.14] transition"
-            >
+                  <button
+                    type="button"
+                    className="text-purple-300 hover:text-white"
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+                </div>
 
-              {/* Card Top */}
-              <div className="flex items-start justify-between mb-5">
+                {/* Client */}
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-semibold">
+                    {(p.clientId?.fullName || "C").charAt(0).toUpperCase()}
+                  </div>
 
-                <div>
+                  <div>
+                    <p className="text-sm text-purple-200">Client</p>
+                    <p className="font-medium">
+                      {p.clientId?.fullName || "Client"}
+                    </p>
+                  </div>
+                </div>
 
-                  <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 mb-3">
-                    {project.category}
+                {/* Your Bid and Deadline */}
+                <div className="flex justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <DollarSign size={18} className="text-purple-300" />
+                    <div>
+                      <p className="text-xs text-purple-300">Your Bid</p>
+                      <p className="font-semibold">
+                        ₹{Number(p.bidAmount || 0).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <CalendarDays size={18} className="text-purple-300" />
+                    <div>
+                      <p className="text-xs text-purple-300">Deadline</p>
+                      <p className="font-semibold">
+                        {p.projectId?.deadline || "Not set"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom */}
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      STATUS_STYLES[p.status] || "bg-gray-500/20 text-gray-300"
+                    }`}
+                  >
+                    {STATUS_LABELS[p.status] || p.status}
                   </span>
 
-                  <h2 className="text-xl font-bold">
-                    {project.title}
-                  </h2>
-
+                  <button
+                    type="button"
+                    onClick={() =>
+                      p.projectId?._id &&
+                      navigate(`/freelancerproject/${p.projectId._id}`)
+                    }
+                    disabled={!p.projectId?._id}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition"
+                  >
+                    View Project
+                  </button>
                 </div>
-
-
-                <button
-                  type="button"
-                  className="text-purple-300 hover:text-white"
-                >
-                  <MoreVertical size={20} />
-                </button>
-
               </div>
-
-
-              {/* Client */}
-              <div className="flex items-center gap-3 mb-5">
-
-                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-semibold">
-                  {project.client.charAt(0)}
-                </div>
-
-                <div>
-
-                  <p className="text-sm text-purple-200">
-                    Client
-                  </p>
-
-                  <p className="font-medium">
-                    {project.client}
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              {/* Budget and Due Date */}
-              <div className="flex justify-between mb-5">
-
-                {/* Budget */}
-                <div className="flex items-center gap-2">
-
-                  <DollarSign
-                    size={18}
-                    className="text-purple-300"
-                  />
-
-                  <div>
-
-                    <p className="text-xs text-purple-300">
-                      Budget
-                    </p>
-
-                    <p className="font-semibold">
-                      {project.budget}
-                    </p>
-
-                  </div>
-
-                </div>
-
-
-                {/* Due */}
-                <div className="flex items-center gap-2">
-
-                  <CalendarDays
-                    size={18}
-                    className="text-purple-300"
-                  />
-
-                  <div>
-
-                    <p className="text-xs text-purple-300">
-                      Due
-                    </p>
-
-                    <p className="font-semibold">
-                      {project.due}
-                    </p>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              {/* Progress */}
-              <div className="mb-5">
-
-                <div className="flex justify-between mb-2">
-
-                  <p className="text-sm text-purple-200">
-                    Progress
-                  </p>
-
-                  <p className="text-sm font-semibold">
-                    {project.progress}%
-                  </p>
-
-                </div>
-
-
-                <div className="w-full h-2 bg-purple-950 rounded-full overflow-hidden">
-
-                  <div
-                    className="h-full bg-purple-500 rounded-full"
-                    style={{
-                      width: `${project.progress}%`,
-                    }}
-                  ></div>
-
-                </div>
-
-              </div>
-
-
-              {/* Bottom */}
-              <div className="flex items-center justify-between gap-3">
-
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${project.statusColor}`}
-                >
-                  {project.status}
-                </span>
-
-
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition"
-                >
-                  View Project
-                </button>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
+            ))}
+          </div>
+        )}
       </div>
-
     </div>
   );
 }

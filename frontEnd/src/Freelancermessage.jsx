@@ -9,6 +9,7 @@ import {
   Paperclip,
   Smile,
   CheckCheck,
+  ArrowLeft,
 } from "lucide-react";
 import Freelancerheader from "./Freelancerheader";
 import socket from "./socket";
@@ -26,26 +27,18 @@ function Freelancermessage() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  // =========================================================
-  // AUTO SCROLL TO BOTTOM
-  // =========================================================
 
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
   useEffect(() => {
     if (selectedChat?.messages?.length) {
       scrollToBottom();
     }
   }, [selectedChat?.messages]);
-  // =========================================================
-  // CONNECT SOCKET, REGISTER THIS USER
-  // =========================================================
 
   useEffect(() => {
     if (!freelancer?.id) return;
@@ -56,10 +49,6 @@ function Freelancermessage() {
 
     socket.emit("register", freelancer.id);
   }, []);
-
-  // =========================================================
-  // FETCH CONVERSATION LIST
-  // =========================================================
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -78,10 +67,6 @@ function Freelancermessage() {
 
     fetchConversations();
   }, []);
-
-  // =========================================================
-  // OPEN A CONVERSATION, FETCH ITS FULL MESSAGE HISTORY
-  // =========================================================
 
   const openChat = async (partnerId, partnerName) => {
     setSelectedChat({
@@ -103,10 +88,6 @@ function Freelancermessage() {
     }
   };
 
-  // =========================================================
-  // OPEN CHAT FROM URL — restores focus after a page reload
-  // =========================================================
-
   useEffect(() => {
     if (!clientId) return;
 
@@ -114,10 +95,6 @@ function Freelancermessage() {
 
     openChat(clientId, known?.name);
   }, [clientId, conversations.length]);
-
-  // =========================================================
-  // LISTEN FOR INCOMING MESSAGES
-  // =========================================================
 
   useEffect(() => {
     const handleReceive = (msg) => {
@@ -163,10 +140,6 @@ function Freelancermessage() {
     return () => socket.off("receiveMessage", handleReceive);
   }, [freelancer.id]);
 
-  // =========================================================
-  // SEND MESSAGE
-  // =========================================================
-
   const handleSendMessage = (e) => {
     e.preventDefault();
 
@@ -181,21 +154,30 @@ function Freelancermessage() {
     setMessage("");
   };
 
+  const handleBackToList = () => {
+    setSelectedChat(null);
+    navigate("/freelancermessage");
+  };
+
   return (
     <div className="min-h-screen bg-[#10002b] text-white">
       <Freelancerheader />
 
-      <main className="">
-        <div className="h-[calc(100vh-190px)] min-h-[595px] flex bg-[#180936] border border-white/10 overflow-hidden shadow-2xl">
+      <main className="mt-1 px-0 sm:px-4">
+        <div className="h-[calc(100vh-140px)] sm:h-[calc(100vh-190px)] min-h-[575px] flex bg-[#180936] sm:border sm:border-white/10 sm:rounded-2xl overflow-hidden shadow-2xl">
           {/* LEFT SIDE - CONVERSATIONS */}
-          <div className="w-full md:w-[340px] lg:w-[380px] border-r border-white/10 flex flex-col">
-            <div className="p-4 border-b border-white/10">
-              <div className="flex items-center gap-3 bg-[#10002b] border border-white/10 rounded-xl px-4 py-3">
-                <Search size={19} className="text-gray-400" />
+          <div
+            className={`${
+              selectedChat ? "hidden" : "flex"
+            } md:flex w-full md:w-[340px] lg:w-[380px] border-r border-white/10 flex-col`}
+          >
+            <div className="p-3 sm:p-4 border-b border-white/10">
+              <div className="flex items-center gap-3 bg-[#10002b] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                <Search size={19} className="text-gray-400 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Search conversations..."
-                  className="bg-transparent outline-none w-full text-white placeholder-gray-500"
+                  className="bg-transparent outline-none w-full text-white placeholder-gray-500 text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -218,7 +200,7 @@ function Freelancermessage() {
                 <button
                   key={chat.userId}
                   onClick={() => navigate(`/freelancermessage/${chat.userId}`)}
-                  className={`w-full flex items-center gap-3 p-4 text-left border-b border-white/5 transition ${
+                  className={`w-full flex items-center gap-3 p-3 sm:p-4 text-left border-b border-white/5 transition ${
                     selectedChat?.userId === chat.userId
                       ? "bg-purple-600/30 border-l-4 border-l-purple-500"
                       : "hover:bg-white/5"
@@ -227,13 +209,15 @@ function Freelancermessage() {
                   <img
                     src={FALLBACK_IMAGE}
                     alt={chat.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
                   />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-semibold truncate">{chat.name}</h3>
-                      <span className="text-xs text-gray-500">
+                    <div className="flex justify-between items-center gap-2">
+                      <h3 className="font-semibold truncate text-sm sm:text-base">
+                        {chat.name}
+                      </h3>
+                      <span className="text-[10px] sm:text-xs text-gray-500 flex-shrink-0">
                         {chat.time
                           ? new Date(chat.time).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -243,7 +227,7 @@ function Freelancermessage() {
                       </span>
                     </div>
 
-                    <p className="text-sm text-gray-400 truncate mt-1">
+                    <p className="text-xs sm:text-sm text-gray-400 truncate mt-1">
                       {chat.lastMessage}
                     </p>
                   </div>
@@ -253,175 +237,159 @@ function Freelancermessage() {
           </div>
 
           {/* RIGHT SIDE - CHAT */}
-          {/* MESSAGES */}
-          {/* =========================================================
-    RIGHT SIDE - CHAT
-========================================================= */}
-
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* CHAT HEADER */}
-            {selectedChat ? (
-              <div className="h-[72px] flex items-center justify-between px-6 border-b border-white/10 bg-[#1d0b3b]">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={FALLBACK_IMAGE}
-                    alt={selectedChat.name}
-                    className="w-11 h-11 rounded-full object-cover border-2 border-purple-500"
-                  />
-
-                  <div>
-                    <h2 className="font-semibold">{selectedChat.name}</h2>
-
-                    <p className="text-xs text-green-400 mt-1">Online</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition">
-                    <Phone size={18} />
-                  </button>
-
-                  <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition">
-                    <Video size={18} />
-                  </button>
-
-                  <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition">
-                    <MoreVertical size={18} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="h-[72px] flex items-center px-6 border-b border-white/10">
-                <p className="text-gray-500">Select a conversation</p>
+          <div
+            className={`${
+              selectedChat ? "flex" : "hidden"
+            } md:flex flex-1 flex-col w-full`}
+          >
+            {!selectedChat && (
+              <div className="flex-1 items-center justify-center text-gray-400 hidden md:flex">
+                Select a conversation to start chatting
               </div>
             )}
-
-            {/* =========================================================
-      MESSAGES AREA
-  ========================================================= */}
-
-            <div
-              className="flex-1 overflow-y-auto p-6 space-y-5"
-              id="message-container"
-            >
-              {!selectedChat && (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-gray-400">
-                      Select a conversation to start chatting
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {selectedChat &&
-                (!selectedChat.messages ||
-                  selectedChat.messages.length === 0) && (
-                  <div className="h-full flex items-center justify-center">
-                    <p className="text-gray-500 text-sm">
-                      No messages yet. Start the conversation.
-                    </p>
-                  </div>
-                )}
-
-              {selectedChat &&
-                (selectedChat.messages || []).map((msg, index) => {
-                  const isFreelancer =
-                    String(msg.senderId) === String(freelancer.id);
-
-                  return (
-                    <div
-                      key={msg._id || index}
-                      className={`flex ${
-                        isFreelancer ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[70%] px-4 py-3 ${
-                          isFreelancer
-                            ? "bg-purple-600 rounded-2xl rounded-br-md"
-                            : "bg-[#29134d] border border-white/10 rounded-2xl rounded-bl-md"
-                        }`}
-                      >
-                        <p className="text-sm leading-6 break-words">
-                          {msg.text}
-                        </p>
-
-                        <div
-                          className={`flex items-center justify-end gap-1 mt-1 ${
-                            isFreelancer ? "text-purple-200" : "text-gray-500"
-                          }`}
-                        >
-                          <span className="text-[11px]">
-                            {msg.createdAt
-                              ? new Date(msg.createdAt).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : ""}
-                          </span>
-
-                          {isFreelancer && <CheckCheck size={14} />}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-              {/* =====================================================
-        IMPORTANT: SCROLL TARGET
-    ===================================================== */}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* =========================================================
-      MESSAGE INPUT
-  ========================================================= */}
 
             {selectedChat && (
-              <form
-                onSubmit={handleSendMessage}
-                className="p-4 border-t border-white/10 bg-[#1d0b3b]"
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition"
-                  >
-                    <Paperclip size={19} />
-                  </button>
+              <>
+                {/* CHAT HEADER */}
+                <div className="h-[64px] sm:h-[72px] flex items-center justify-between px-3 sm:px-6 border-b border-white/10 bg-[#1d0b3b]">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button
+                      onClick={handleBackToList}
+                      className="md:hidden p-1.5 -ml-1 rounded-lg hover:bg-white/10 transition flex-shrink-0"
+                    >
+                      <ArrowLeft size={20} />
+                    </button>
 
-                  <div className="flex-1 flex items-center bg-[#10002b] border border-white/10 rounded-xl px-4">
-                    <input
-                      type="text"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Type a message..."
-                      className="flex-1 bg-transparent outline-none py-3 text-white placeholder-gray-500"
+                    <img
+                      src={FALLBACK_IMAGE}
+                      alt={selectedChat.name}
+                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-purple-500 flex-shrink-0"
                     />
 
-                    <button
-                      type="button"
-                      className="text-gray-400 hover:text-white transition"
-                    >
-                      <Smile size={19} />
-                    </button>
+                    <div className="min-w-0">
+                      <h2 className="font-semibold truncate text-sm sm:text-base">
+                        {selectedChat.name}
+                      </h2>
+                      <p className="text-xs text-green-400 mt-1 hidden sm:block">
+                        Online
+                      </p>
+                    </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={!message.trim()}
-                    className="w-11 h-11 flex items-center justify-center bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-xl transition"
-                  >
-                    <Send size={18} />
-                  </button>
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <button className="hidden sm:flex w-10 h-10 items-center justify-center rounded-xl hover:bg-white/10 transition">
+                      <Phone size={18} />
+                    </button>
+
+                    <button className="hidden sm:flex w-10 h-10 items-center justify-center rounded-xl hover:bg-white/10 transition">
+                      <Video size={18} />
+                    </button>
+
+                    <button className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl hover:bg-white/10 transition">
+                      <MoreVertical size={18} />
+                    </button>
+                  </div>
                 </div>
-              </form>
+
+                {/* MESSAGES AREA */}
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-5">
+                  {(!selectedChat.messages ||
+                    selectedChat.messages.length === 0) && (
+                    <p className="text-gray-500 text-sm text-center">
+                      No messages yet. Start the conversation.
+                    </p>
+                  )}
+
+                  {(selectedChat.messages || []).map((msg, index) => {
+                    const isFreelancer =
+                      String(msg.senderId) === String(freelancer.id);
+
+                    return (
+                      <div
+                        key={msg._id || index}
+                        className={`flex ${
+                          isFreelancer ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[85%] sm:max-w-[70%] px-3 sm:px-4 py-2.5 sm:py-3 ${
+                            isFreelancer
+                              ? "bg-purple-600 rounded-2xl rounded-br-md"
+                              : "bg-[#29134d] border border-white/10 rounded-2xl rounded-bl-md"
+                          }`}
+                        >
+                          <p className="text-sm leading-6 break-words">
+                            {msg.text}
+                          </p>
+
+                          <div
+                            className={`flex items-center justify-end gap-1 mt-1 ${
+                              isFreelancer ? "text-purple-200" : "text-gray-500"
+                            }`}
+                          >
+                            <span className="text-[11px]">
+                              {msg.createdAt
+                                ? new Date(msg.createdAt).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )
+                                : ""}
+                            </span>
+
+                            {isFreelancer && <CheckCheck size={14} />}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* MESSAGE INPUT */}
+                <form
+                  onSubmit={handleSendMessage}
+                  className="p-2.5 sm:p-4 border-t border-white/10 bg-[#1d0b3b]"
+                >
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <button
+                      type="button"
+                      className="hidden sm:flex w-10 h-10 items-center justify-center rounded-xl hover:bg-white/10 transition"
+                    >
+                      <Paperclip size={19} />
+                    </button>
+
+                    <div className="flex-1 flex items-center bg-[#10002b] border border-white/10 rounded-xl px-3 sm:px-4">
+                      <input
+                        type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        className="flex-1 bg-transparent outline-none py-2.5 sm:py-3 text-white placeholder-gray-500 text-sm sm:text-base min-w-0"
+                      />
+
+                      <button
+                        type="button"
+                        className="hidden sm:block text-gray-400 hover:text-white transition"
+                      >
+                        <Smile size={19} />
+                      </button>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!message.trim()}
+                      className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-xl transition flex-shrink-0"
+                    >
+                      <Send size={18} />
+                    </button>
+                  </div>
+                </form>
+              </>
             )}
-          </div>
-          <div className="md:hidden flex flex-1 items-center justify-center text-gray-400">
-            {selectedChat ? "Chat open" : "Select a conversation"}
           </div>
         </div>
       </main>

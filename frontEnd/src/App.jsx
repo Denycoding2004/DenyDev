@@ -42,7 +42,7 @@ function App() {
           <Route path="/freelancer/:userId" element={<FreelancerDetail />} />
           <Route path="/project/:projectId" element={<ViewProject />} />
           <Route
-            path="/client/project/:projectId"
+            path="/clientprojects/:projectId"
             element={<ClientViewProject />}
           />
           <Route
