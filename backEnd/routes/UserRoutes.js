@@ -708,6 +708,12 @@ router.post("/proposals/:projectId", async (req, res) => {
     }
 
     // -----------------------------------------
+    // Check if position already filled
+    // -----------------------------------------
+
+    const positionFilled = Boolean(project.assignedFreelancerId);
+
+    // -----------------------------------------
     // Check freelancer
     // -----------------------------------------
 
@@ -760,7 +766,7 @@ router.post("/proposals/:projectId", async (req, res) => {
 
       coverLetter: coverLetter.trim(),
 
-      status: "pending",
+      status: positionFilled ? "rejected" : "pending",
     });
 
     // -----------------------------------------
@@ -777,7 +783,9 @@ router.post("/proposals/:projectId", async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Proposal submitted successfully",
+      message: positionFilled
+        ? "This position has already been filled. Your proposal was recorded as not selected."
+        : "Proposal submitted successfully",
       proposal,
     });
   } catch (error) {
@@ -923,7 +931,36 @@ router.patch("/proposals/:proposalId/accept", async (req, res) => {
     });
   }
 });
+// routes/proposalRoutes.js
+router.patch("/proposals/:proposalId/progress", async (req, res) => {
+  try {
+    const { progress } = req.body;
 
+    if (![0, 25, 50, 75, 100].includes(progress)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid progress value" });
+    }
+
+    const proposal = await Proposal.findByIdAndUpdate(
+      req.params.proposalId, // ✅ fixed
+      { progress },
+      { new: true },
+    );
+
+    if (!proposal) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Proposal not found" });
+    }
+
+    res.json({ success: true, proposal });
+  } catch (error) {
+    console.log("Update Progress Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+ 
 // =========================================================
 // EXPORT ROUTER
 // =========================================================

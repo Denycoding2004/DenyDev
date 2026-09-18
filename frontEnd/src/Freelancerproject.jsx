@@ -206,8 +206,7 @@ function Freelancerproject() {
                   </div>
 
                   <div>
-                    <p className="text-sm text-purple-200">Client</p>
-                    <p className="font-medium">
+                     <p className="font-medium">
                       {p.clientId?.fullName || "Client"}
                     </p>
                   </div>
@@ -249,11 +248,16 @@ function Freelancerproject() {
                   <button
                     type="button"
                     onClick={() =>
+                      p.status === "accepted" &&
                       p.projectId?._id &&
                       navigate(`/freelancerproject/${p.projectId._id}`)
                     }
-                    disabled={!p.projectId?._id}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition"
+                    disabled={p.status !== "accepted" || !p.projectId?._id}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      p.status === "accepted"
+                        ? "bg-purple-600 hover:bg-purple-700 text-white"
+                        : "bg-purple-900/50 text-gray-500 cursor-not-allowed"
+                    }`}
                   >
                     View Project
                   </button>

@@ -7,23 +7,25 @@ import {
   X,
 } from "lucide-react";
 import { Code2 } from "lucide-react";
-
-import { useNavigate } from "react-router-dom";
+import API from "./API";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 function Freelancerheader() {
   const user = JSON.parse(localStorage.getItem("user"));
+  const location = useLocation();
 
   const Navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
-
   // Navigation function
   const handleNavigate = (path) => {
     Navigate(path);
 
     setMenuOpen(false);
   };
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
@@ -40,7 +42,7 @@ bg-[#4C1D95]/100
           <div className="flex items-center justify-between">
             {/* LEFT - LOGO */}
             <button
-              onClick={() => handleNavigation("#")}
+              onClick={() => handleNavigate("/freelancerdashboard")}
               className="
               flex
               items-center
@@ -99,7 +101,11 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/freelancerdashboard")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/freelancerdashboard")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <LayoutDashboard size={18} />
 
@@ -111,16 +117,18 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/freelancermessage")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition relative"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/freelancermessage")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <MessageCircle size={18} />
 
                     <span>Messages</span>
 
                     {/* Notification */}
-                    <span className="absolute -top-2 -right-3 text-[10px] bg-red-500 px-1.5 py-0.5 rounded-full">
-                      2
-                    </span>
+                    <span className="absolute -top-2 -right-3 text-[10px] bg-red-500 px-1.5 py-0.5 rounded-full"></span>
                   </button>
                 </li>
 
@@ -128,7 +136,11 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/freelancerproject")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/freelancerproject")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <FolderOpen size={18} />
 
@@ -180,13 +192,14 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/freelancermessage")}
-                    className="w-full flex items-center gap-3 text-white px-4 py-3 rounded-lg hover:bg-purple-800 transition relative"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/freelancermessages")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <MessageCircle size={19} />
                     Messages
-                    <span className="ml-auto text-xs bg-red-500 px-2 py-0.5 rounded-full">
-                      2
-                    </span>
                   </button>
                 </li>
 

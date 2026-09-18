@@ -163,7 +163,7 @@ function ClientMessages() {
       <Clientheader />
 
       <main className="mt-1 px-0 ">
-        <div className="h-[calc(100vh-140px)] sm:h-[calc(100vh-190px)] min-h-[575px] flex bg-[#180936] sm:border sm:border-white/10 sm:rounded-2xl overflow-hidden shadow-2xl">
+        <div className="h-[calc(100vh-120px)] min-h-[500px] sm:h-[calc(90vh-110px)] sm:min-h-[575px] flex bg-[#180936] sm:border sm:border-white/10 overflow-hidden shadow-2xl">
           {/* LEFT SIDE - CONVERSATIONS */}
           <div
             className={`${

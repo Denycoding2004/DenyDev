@@ -47,6 +47,12 @@ const proposalSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    // models/Proposal.js (add this field to the existing schema)
+    progress: {
+      type: Number,
+      enum: [0, 25, 50, 75, 100],
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -8,11 +8,12 @@ import {
   X,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Code2 } from "lucide-react";
 import { useState } from "react";
 
 function Clientheader() {
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
 
   const Navigate = useNavigate();
@@ -24,7 +25,7 @@ function Clientheader() {
     Navigate(path);
     setMenuOpen(false);
   };
-
+  const isActive = (path) => location.pathname === path;
   return (
     <>
       <header
@@ -98,7 +99,11 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/clientdashboard")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/clientdashboard")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <LayoutDashboard size={18} />
                     <span>Dashboard</span>
@@ -109,14 +114,18 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/clientmessages")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition relative"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/clientmessages")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <MessageCircle size={18} />
                     <span>Messages</span>
 
                     {/* Notification */}
                     <span className="absolute -top-2 -right-3 text-[10px] bg-red-500 px-1.5 py-0.5 rounded-full">
-                      2
+                     
                     </span>
                   </button>
                 </li>
@@ -125,7 +134,11 @@ bg-[#4C1D95]/100
                 <li>
                   <button
                     onClick={() => handleNavigate("/clientprojects")}
-                    className="flex items-center gap-2 hover:text-blue-400 transition"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive("/clientprojects")
+                        ? "bg-purple-600/30 text-white border border-purple-400/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]"
+                        : "text-white/80 hover:bg-purple-500/20 hover:text-white hover:border-purple-400/30 border border-transparent"
+                    }`}
                   >
                     <FolderOpen size={18} />
                     <span>Projects</span>
