@@ -953,14 +953,18 @@ router.patch("/proposals/:proposalId/progress", async (req, res) => {
         .status(404)
         .json({ success: false, message: "Proposal not found" });
     }
-
+    if (progress === 100) {
+      await PostJob.findByIdAndUpdate(proposal.projectId, {
+        status: "completed",
+      });
+    }
     res.json({ success: true, proposal });
   } catch (error) {
     console.log("Update Progress Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
- 
+
 // =========================================================
 // EXPORT ROUTER
 // =========================================================

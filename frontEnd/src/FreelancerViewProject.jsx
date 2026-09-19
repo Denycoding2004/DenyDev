@@ -30,7 +30,7 @@ function FreelancerViewProject() {
   // =====================================================
   // FETCH PROJECT + MY PROPOSAL
   // =====================================================
-
+ 
   useEffect(() => {
     const fetchData = async () => {
       const freelancerId = freelancer?._id || freelancer?.id;
@@ -75,6 +75,7 @@ function FreelancerViewProject() {
     if (myProposal?.progress !== undefined) {
       setProgress(myProposal.progress);
     }
+    
   }, [myProposal]);
 
   // =====================================================
@@ -104,6 +105,10 @@ function FreelancerViewProject() {
     if (updatingProgress || value <= progress) return;
 
     setUpdatingProgress(true);
+    setProject((value) => ({
+      ...value,
+      status: "completed",
+    }));
 
     try {
       const res = await API.patch(`/proposals/${myProposal._id}/progress`, {

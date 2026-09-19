@@ -62,7 +62,6 @@ function ViewProject() {
         const res = await API.get(`/postjobs/${projectId}`);
 
         if (res.data.success) {
-          console.log("Fetched project:", res.data.project);
           setProject(res.data.project);
         }
       } catch (error) {
@@ -73,6 +72,38 @@ function ViewProject() {
     };
 
     fetchProject();
+  }, [projectId]);
+
+  useEffect(() => {
+    const checkExistingProposal = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+
+        if (!storedUser) return;
+
+        const user = JSON.parse(storedUser);
+
+        const freelancerId = user._id || user.id || user.freelancerId;
+
+        if (!freelancerId) return;
+
+        const res = await API.get(`/proposals/freelancer/${freelancerId}`);
+
+        if (res.data.success) {
+          const existingProposal = res.data.proposals.find(
+            (proposal) => String(proposal.projectId?._id) === String(projectId),
+          );
+
+          if (existingProposal) {
+            setProposalSubmitted(true);
+          }
+        }
+      } catch (error) {
+        console.log("Check Existing Proposal Error:", error);
+      }
+    };
+
+    checkExistingProposal();
   }, [projectId]);
 
   // =====================================================
@@ -232,8 +263,7 @@ function ViewProject() {
 
       if (res.data.success) {
         setProposalSuccess(true);
-        setProposalSubmitted(true);
-
+ 
         // Update proposal count immediately
         setProject((prev) => ({
           ...prev,
@@ -254,8 +284,6 @@ function ViewProject() {
         }, 2000);
       }
     } catch (error) {
-      console.log("Submit Proposal Error:", error);
-      console.log("Backend Response:", error.response?.data);
       setProposalError(
         error.response?.data?.message ||
           "Failed to submit proposal. Please try again.",
@@ -264,6 +292,7 @@ function ViewProject() {
       setProposalLoading(false);
     }
   };
+
   // =====================================================
   // LOADING
   // =====================================================
@@ -432,7 +461,7 @@ function ViewProject() {
                         <div>
                           <p className="text-xs text-gray-400">Deadline</p>
                           <p className="text-white font-medium mt-1">
-                            {duration ? `${duration} Days` : "Not specified"}
+                            {project.deadline || "Not specified"}
                           </p>
                         </div>
                       </div>

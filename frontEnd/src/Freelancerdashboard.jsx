@@ -23,6 +23,7 @@ function Freelancerdashboard() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   // Client posted projects
   const [projects, setProjects] = useState([]);
@@ -30,7 +31,25 @@ function Freelancerdashboard() {
   // =========================================================
   // PROJECT CATEGORIES
   // =========================================================
+  const searchPlaceholders = [
+    "Search for Full Stack projects...",
+    "Search for React projects...",
+    "Search for AI / ML projects...",
+    "Search for Data Science projects...",
+    "Search for Python projects...",
+    "Search for DevOps projects...",
+    "Search for Cloud Computing projects...",
+    "Search for Web Development projects...",
+    "Search for Node.js projects...",
+    "Search for Cybersecurity projects...",
+  ];
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % searchPlaceholders.length);
+    }, 2000);
 
+    return () => clearInterval(interval);
+  }, []);
   // =========================================================
   // FETCH PROJECTS
   // =========================================================
@@ -41,7 +60,11 @@ function Freelancerdashboard() {
         const res = await API.get("/postjobs");
 
         if (res.data.success) {
-          setProjects(res.data.jobs);
+          const openProjects = res.data.jobs.filter(
+            (project) => project.status?.toLowerCase() === "open",
+          );
+
+          setProjects(openProjects);
         }
       } catch (error) {
         console.log("Fetch Projects Error:", error);
@@ -130,7 +153,7 @@ function Freelancerdashboard() {
 
             <input
               type="search"
-              placeholder="Search projects, skills, technologies..."
+              placeholder={searchPlaceholders[placeholderIndex]}
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-full px-4 py-3.5 outline-none text-gray-800 text-sm sm:text-base"
@@ -296,9 +319,10 @@ function Freelancerdashboard() {
                       <p className="text-xs text-gray-400">Budget</p>
 
                       <p className="font-bold mt-1">
-                        ₹{Number(project.budgetMin).toLocaleString("en-IN")}
+                        ₹
+                        {Number(project.budgetMin || 0).toLocaleString("en-IN")}
                         {" - ₹"}
-                        {Number(project.budgetMax).toLocaleString("en-IN")}
+                        {Number(project.budgetMax || 0).toLocaleString("en-IN")}
                       </p>
                     </div>
 

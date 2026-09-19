@@ -258,9 +258,7 @@ bg-[#4C1D95]/100
                     <MessageCircle size={19} />
                     <span>Messages</span>
 
-                    <span className="ml-auto text-xs bg-red-500 px-2 py-0.5 rounded-full">
-                      2
-                    </span>
+                    
                   </button>
                 </li>
 

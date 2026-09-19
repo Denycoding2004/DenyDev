@@ -128,8 +128,7 @@ bg-[#4C1D95]/100
                     <span>Messages</span>
 
                     {/* Notification */}
-                    <span className="absolute -top-2 -right-3 text-[10px] bg-red-500 px-1.5 py-0.5 rounded-full"></span>
-                  </button>
+                   </button>
                 </li>
 
                 {/* Projects */}

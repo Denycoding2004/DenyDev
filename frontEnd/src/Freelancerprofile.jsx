@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { LiaRupeeSignSolid } from "react-icons/lia";
 
 import {
   User,
@@ -1039,7 +1040,7 @@ function Freelancerprofile() {
 
               <div className="bg-black/20 border border-white/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-gray-400">
-                  <DollarSign size={15} />
+                  <LiaRupeeSignSolid  size={15} />
 
                   <span className="text-xs">Hourly Rate</span>
                 </div>

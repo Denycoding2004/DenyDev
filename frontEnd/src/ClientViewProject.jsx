@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   MessageCircle,
   XCircle,
+  User,
 } from "lucide-react";
 import Clientheader from "./Clientheader";
 import API from "./API";
@@ -28,16 +29,10 @@ function ClientViewProject() {
   // =====================================================
   // FETCH PROJECT + PROPOSALS
   // =====================================================
+
   // =====================================================
   // SORTED PROPOSALS (accepted first)
   // =====================================================
-
-  const sortedProposals = [...proposals].sort((a, b) => {
-    const rank = { accepted: 0, pending: 1, rejected: 2 };
-    const rankA = rank[a.status] ?? 1;
-    const rankB = rank[b.status] ?? 1;
-    return rankA - rankB;
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -199,7 +194,16 @@ function ClientViewProject() {
   // =====================================================
   // JSX
   // =====================================================
+  // =====================================================
+  // SORTED PROPOSALS (accepted first)
+  // =====================================================
 
+  const sortedProposals = [...proposals].sort((a, b) => {
+    const rank = { accepted: 0, pending: 1, rejected: 2 };
+    const rankA = rank[a.status] ?? 1;
+    const rankB = rank[b.status] ?? 1;
+    return rankA - rankB;
+  });
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#10002b] to-[#240046] text-white">
       <Clientheader />
@@ -209,7 +213,7 @@ function ClientViewProject() {
 
         <button
           type="button"
-          onClick={() => navigate("/clientproject")}
+          onClick={() => navigate("/clientprojects")}
           className="flex items-center gap-2 text-gray-300 hover:text-white mb-6 transition"
         >
           <ArrowLeft size={18} />
@@ -258,17 +262,36 @@ function ClientViewProject() {
                       </p>
                     </div>
 
+                    {/* PROJECT PROGRESS (read-only) */}
+
                     {acceptedProposal && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleChat(acceptedProposal.freelancerId?._id)
-                        }
-                        className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition"
-                      >
-                        <MessageCircle size={18} />
-                        Chat with Freelancer
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              `/freelancer/${acceptedProposal.freelancerId?._id}`,
+                            )
+                          }
+                          className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-semibold transition"
+                        >
+                          <User size={16} />
+                          View Profile
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleChat(acceptedProposal.freelancerId?._id)
+                          }
+                          className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition"
+                        >
+                          <MessageCircle size={18} />
+                          Chat with{" "}
+                          {acceptedProposal.freelancerId?.fullName ||
+                            "Freelancer"}
+                        </button>
+                      </div>
                     )}
                   </>
                 ) : (
@@ -434,7 +457,6 @@ function ClientViewProject() {
               )}
 
               {/* NO PROPOSALS */}
-
               {proposals.length === 0 ? (
                 <div className="bg-white/5 border border-white/10 rounded-xl p-8">
                   <p className="text-gray-400 text-center">
@@ -443,139 +465,159 @@ function ClientViewProject() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {sortedProposals.map((p) => (
-                    <div
-                      key={p._id}
-                      className={`bg-white/5 border rounded-xl p-5 transition ${
-                        p.status === "accepted"
-                          ? "border-green-400/50"
-                          : p.status === "rejected"
-                            ? "border-red-400/20"
-                            : "border-white/10"
-                      }`}
-                    >
-                      {/* FREELANCER INFO */}
+                  {sortedProposals.map((p) => {
+                    const isLocked =
+                      projectHasAcceptedProposal && p.status !== "accepted";
 
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
-                        <div>
-                          <h3 className="font-semibold text-lg text-white">
-                            {p.freelancerId?.fullName || "Freelancer"}
-                          </h3>
+                    return (
+                      <div
+                        key={p._id}
+                        className={`bg-white/5 border rounded-xl p-5 transition ${
+                          p.status === "accepted"
+                            ? "border-green-400/50"
+                            : p.status === "rejected"
+                              ? "border-red-400/20"
+                              : "border-white/10"
+                        } ${isLocked ? "opacity-40 pointer-events-none" : ""}`}
+                      >
+                        {/* FREELANCER INFO */}
 
-                          <p className="text-xs text-gray-500 mt-1">
-                            Freelancer Proposal
-                          </p>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+                          <div>
+                            <h3 className="font-semibold text-lg text-white">
+                              {p.freelancerId?.fullName || "Freelancer"}
+                            </h3>
+
+                            <p className="text-xs text-gray-500 mt-1">
+                              Freelancer Proposal
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1 text-purple-300 font-bold">
+                            <IndianRupee size={16} />
+
+                            {Number(p.bidAmount || 0).toLocaleString("en-IN")}
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-1 text-purple-300 font-bold">
-                          <IndianRupee size={16} />
+                        {/* COVER LETTER */}
 
-                          {Number(p.bidAmount || 0).toLocaleString("en-IN")}
+                        <p className="text-gray-300 text-sm leading-6 mb-4">
+                          {p.coverLetter}
+                        </p>
+
+                        {/* DELIVERY */}
+
+                        <div className="flex items-center gap-2 text-gray-400 text-xs mb-4">
+                          <Clock size={14} />
+                          {p.deliveryTime} days delivery
                         </div>
-                      </div>
 
-                      {/* COVER LETTER */}
+                        {/* ACTIONS */}
 
-                      <p className="text-gray-300 text-sm leading-6 mb-4">
-                        {p.coverLetter}
-                      </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-white/10">
+                          {/* STATUS */}
 
-                      {/* DELIVERY */}
-
-                      <div className="flex items-center gap-2 text-gray-400 text-xs mb-4">
-                        <Clock size={14} />
-                        {p.deliveryTime} days delivery
-                      </div>
-
-                      {/* ACTIONS */}
-
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-white/10">
-                        {/* STATUS */}
-
-                        <div>
-                          {p.status === "accepted" && (
-                            <span className="flex items-center gap-1 text-green-400 text-sm font-medium">
-                              <CheckCircle2 size={16} />
-                              Accepted
-                            </span>
-                          )}
-
-                          {p.status === "rejected" && (
-                            <span className="flex items-center gap-1 text-gray-500 text-sm">
-                              <XCircle size={16} />
-                              Rejected
-                            </span>
-                          )}
-
-                          {p.status !== "accepted" &&
-                            p.status !== "rejected" && (
-                              <span className="text-yellow-400 text-sm">
-                                Pending
+                          <div>
+                            {p.status === "accepted" && (
+                              <span className="flex items-center gap-1 text-green-400 text-sm font-medium">
+                                <CheckCircle2 size={16} />
+                                Accepted
                               </span>
                             )}
-                        </div>
 
-                        {/* BUTTONS */}
-
-                        <div className="flex items-center gap-2">
-                          {/* CHAT */}
-
-                          {p.status === "accepted" && (
-                            <button
-                              type="button"
-                              onClick={() => handleChat(p.freelancerId?._id)}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 border border-white/10 rounded-lg text-sm font-medium transition"
-                            >
-                              <MessageCircle size={16} />
-                              Chat
-                            </button>
-                          )}
-
-                          {/* REJECT + ACCEPT */}
-
-                          {p.status !== "accepted" &&
-                            p.status !== "rejected" &&
-                            !projectHasAcceptedProposal && (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={rejectingId === p._id}
-                                  onClick={() => handleReject(p._id)}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-red-500/20 hover:text-red-300 disabled:opacity-50 border border-white/10 rounded-lg text-sm font-medium transition"
-                                >
-                                  <XCircle size={16} />
-
-                                  {rejectingId === p._id
-                                    ? "Rejecting..."
-                                    : "Reject"}
-                                </button>
-
-                                <button
-                                  type="button"
-                                  disabled={acceptingId === p._id}
-                                  onClick={() => handleAccept(p._id)}
-                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition"
-                                >
-                                  {acceptingId === p._id
-                                    ? "Accepting..."
-                                    : "Accept"}
-                                </button>
-                              </>
+                            {p.status === "rejected" && (
+                              <span className="flex items-center gap-1 text-gray-500 text-sm">
+                                <XCircle size={16} />
+                                Rejected
+                              </span>
                             )}
 
-                          {/* POSITION FILLED */}
+                            {p.status !== "accepted" &&
+                              p.status !== "rejected" && (
+                                <span className="text-yellow-400 text-sm">
+                                  Pending
+                                </span>
+                              )}
+                          </div>
 
-                          {p.status !== "accepted" &&
-                            p.status !== "rejected" &&
-                            projectHasAcceptedProposal && (
+                          {/* BUTTONS */}
+
+                          <div className="flex items-center gap-2">
+                            {/* CHAT */}
+
+                            {p.status === "accepted" && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(
+                                      `/freelancer/${p.freelancerId?._id}`,
+                                    )
+                                  }
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-sm font-medium transition"
+                                >
+                                  <User size={16} />
+                                  View Profile
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleChat(p.freelancerId?._id)
+                                  }
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 border border-white/10 rounded-lg text-sm font-medium transition"
+                                >
+                                  <MessageCircle size={16} />
+                                  Chat
+                                </button>
+                              </div>
+                            )}
+
+                            {/* REJECT + ACCEPT */}
+
+                            {p.status !== "accepted" &&
+                              p.status !== "rejected" &&
+                              !projectHasAcceptedProposal && (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={rejectingId === p._id}
+                                    onClick={() => handleReject(p._id)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-red-500/20 hover:text-red-300 disabled:opacity-50 border border-white/10 rounded-lg text-sm font-medium transition"
+                                  >
+                                    <XCircle size={16} />
+
+                                    {rejectingId === p._id
+                                      ? "Rejecting..."
+                                      : "Reject"}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={acceptingId === p._id}
+                                    onClick={() => handleAccept(p._id)}
+                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition"
+                                  >
+                                    {acceptingId === p._id
+                                      ? "Accepting..."
+                                      : "Accept"}
+                                  </button>
+                                </>
+                              )}
+
+                            {/* POSITION FILLED */}
+
+                            {isLocked && (
                               <span className="text-gray-500 text-xs">
                                 Position filled
                               </span>
                             )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

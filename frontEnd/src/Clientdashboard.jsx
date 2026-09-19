@@ -28,6 +28,28 @@ function Clientdashboard() {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const searchPlaceholders = [
+    "Search your projects...",
+    "Search for Web Development projects...",
+    "Search for AI / ML projects...",
+    "Search for Data Science projects...",
+    "Search for DevOps projects...",
+    "Search for Cloud Computing projects...",
+    "Search for React projects...",
+    "Search for Python projects...",
+    "Search for Cybersecurity projects...",
+  ];
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex(
+        (prevIndex) => (prevIndex + 1) % searchPlaceholders.length,
+      );
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const fetchDevelopers = async () => {
       try {
@@ -100,8 +122,8 @@ function Clientdashboard() {
                 setSearchText(e.target.value);
                 setSelectedCategory("");
               }}
-              placeholder="Search freelancers, skills, technologies..."
-              className="w-full px-4 py-4 outline-none text-gray-800 text-sm sm:text-base"
+              placeholder={searchPlaceholders[placeholderIndex]}
+              className="w-full px-4 py-4 outline-none text-black text-sm sm:text-base"
             />
           </div>
         </div>
