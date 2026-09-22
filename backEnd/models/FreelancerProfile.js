@@ -1,21 +1,34 @@
 const mongoose = require("mongoose");
 
+const reviewSchema = new mongoose.Schema(
+  {
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    clientName: {
+      type: String,
+      default: "Anonymous",
+      trim: true,
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    comment: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  { timestamps: true },
+);
+
 const freelancerProfileSchema = new mongoose.Schema(
   {
-    // ==========================================
-    // USER ID
-    // ==========================================
-    // This connects the freelancer profile
-    // with the User collection.
-    //
-    // User._id
-    //     ↓
-    // FreelancerProfile.userId
-    //
-    // unique: true means one user can have
-    // only ONE freelancer profile.
-    // ==========================================
-
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -26,9 +39,6 @@ const freelancerProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // ==========================================
-    // BASIC INFORMATION
-    // ==========================================
 
     name: {
       type: String,
@@ -42,10 +52,6 @@ const freelancerProfileSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-
-    // ==========================================
-    // CONTACT INFORMATION
-    // ==========================================
 
     phone: {
       type: String,
@@ -65,10 +71,6 @@ const freelancerProfileSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // ==========================================
-    // PROFESSIONAL INFORMATION
-    // ==========================================
-
     title: {
       type: String,
       default: "",
@@ -87,10 +89,6 @@ const freelancerProfileSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // ==========================================
-    // PROJECT INFORMATION
-    // ==========================================
-
     projects: {
       type: Number,
       default: 0,
@@ -100,12 +98,8 @@ const freelancerProfileSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
-      max: 5, 
+      max: 5,
     },
-
-    // ==========================================
-    // HOURLY RATE
-    // ==========================================
 
     hourlyRate: {
       type: Number,
@@ -113,27 +107,24 @@ const freelancerProfileSchema = new mongoose.Schema(
       min: 0,
     },
 
-    // ==========================================
-    // SKILLS
-    // ==========================================
-
     skills: {
       type: [String],
       default: [],
     },
-  },
 
-  // ==========================================
-  // AUTOMATIC CREATED / UPDATED DATES
-  // ==========================================
+    // ==========================================
+    // REVIEWS
+    // ==========================================
+
+    reviews: {
+      type: [reviewSchema],
+      default: [],
+    },
+  },
 
   {
     timestamps: true,
   },
 );
-
-// ==========================================
-// EXPORT MODEL
-// ==========================================
 
 module.exports = mongoose.model("FreelancerProfile", freelancerProfileSchema);

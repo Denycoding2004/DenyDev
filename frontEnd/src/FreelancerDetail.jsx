@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { LiaRupeeSignSolid } from "react-icons/lia";
+
 import {
   Star,
   MapPin,
@@ -69,11 +71,6 @@ function FreelancerDetail() {
       return;
     }
 
-    if (reviewRating < 1) {
-      alert("Please select a star rating.");
-      return;
-    }
-
     try {
       setSubmitting(true);
 
@@ -133,25 +130,6 @@ function FreelancerDetail() {
     );
   }
 
-  const handleRating = async (freelancerId, rating) => {
-    try {
-      const res = await API.post(`/freelancerprofile/${freelancerId}/rate`, {
-        rating: rating,
-      });
-
-      if (res.data.success) {
-        alert("Rating submitted successfully");
-
-        setDevelopers((prev) =>
-          prev.map((dev) =>
-            dev.userId === freelancerId ? { ...dev, rating: rating } : dev,
-          ),
-        );
-      }
-    } catch (error) {
-      console.error("Rating error:", error);
-    }
-  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#10002b] via-[#18003b] to-[#240046] text-white px-4 sm:px-6 lg:px-10 py-8">
       {/* BACK BUTTON */}
@@ -219,11 +197,11 @@ function FreelancerDetail() {
 
               <div className="bg-black/20 border border-white/10 rounded-xl p-3">
                 <div className="flex items-center gap-1.5 text-gray-500">
-                  <DollarSign size={14} />
+                  <LiaRupeeSignSolid size={13} />
                   <p className="text-[11px]">Rate</p>
                 </div>
-                <p className="font-bold mt-1 text-sm">
-                  {profile.hourlyRate ? `₹${profile.hourlyRate}/hr` : "Not set"}
+                <p className="font-bold mt-1 ml-1 text-sm">
+                  {profile.hourlyRate ? `${profile.hourlyRate}/hr` : "Not set"}
                 </p>
               </div>
             </div>

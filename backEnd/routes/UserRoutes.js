@@ -863,8 +863,7 @@ router.post("/proposals/:projectId", async (req, res) => {
         message: "Failed to create proposal",
       });
     }
-    
-    
+
     return res.status(201).json({
       success: true,
       message: "Proposal submitted successfully",
@@ -1046,7 +1045,60 @@ router.patch("/proposals/:proposalId/progress", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+router.post("/freelancerprofile/:userId/review", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { clientId, clientName, rating, comment } = req.body;
 
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: "Client ID is required",
+      });
+    }
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 1 and 5",
+      });
+    }
+
+    const profile = await FreelancerProfile.findOne({ userId });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Freelancer profile not found",
+      });
+    }
+
+    profile.reviews.push({
+      clientId,
+      clientName: clientName || "Anonymous",
+      rating: Number(rating),
+      comment: comment?.trim() || "",
+    });
+
+    const total = profile.reviews.reduce(
+      (acc, review) => acc + review.rating,
+      0,
+    );
+
+    profile.rating = total / profile.reviews.length;
+
+    await profile.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Review submitted successfully",
+      profile,
+    });
+  } catch (error) {
+    console.log("Submit Review Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 // =========================================================
 // EXPORT ROUTER
 // =========================================================
