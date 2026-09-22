@@ -182,9 +182,7 @@ function Freelancerproject() {
                 {/* Card Top */}
                 <div className="flex items-start justify-between mb-5">
                   <div>
-                    <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 mb-3">
-                      {p.projectId?.category || "Uncategorized"}
-                    </span>
+                     
 
                     <h2 className="text-xl font-bold">
                       {p.projectId?.title || "Project removed"}

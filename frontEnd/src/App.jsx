@@ -15,7 +15,7 @@ import Freelancermessage from "./Freelancermessage";
 import Freelancerproject from "./Freelancerproject";
 import Freelancerprofile from "./Freelancerprofile";
 import FreelancerDetail from "./FreelancerDetail";
-import ViewProject from "./ViewProject";
+import Freelancerproposal from "./Freelancerproposal";
 import ClientViewProject from "./ClientViewProject";
 import FreelancerViewProject from "./FreelancerViewProject";
 
@@ -41,7 +41,7 @@ function App() {
           <Route path="/freelancerproject" element={<Freelancerproject />} />
           <Route path="/freelancerprofile" element={<Freelancerprofile />} />
           <Route path="/freelancer/:userId" element={<FreelancerDetail />} />
-          <Route path="/project/:projectId" element={<ViewProject />} />
+          <Route path="/project/:projectId" element={<Freelancerproposal />} />
           <Route
             path="/clientprojects/:projectId"
             element={<ClientViewProject />}

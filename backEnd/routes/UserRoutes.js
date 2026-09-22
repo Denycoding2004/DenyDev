@@ -152,11 +152,12 @@ router.post("/postjob", async (req, res) => {
       title,
       companyName,
       description,
-      skills,
+      projectType,
+      experienceLevel,
+      duration,
       budgetMin,
       budgetMax,
       deadline,
-      category,
     } = req.body;
 
     // -----------------------------------------
@@ -195,22 +196,102 @@ router.post("/postjob", async (req, res) => {
     }
 
     // -----------------------------------------
+    // Validate required project information
+    // -----------------------------------------
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Project title is required",
+      });
+    }
+
+    if (!description || !description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Project description is required",
+      });
+    }
+
+    if (
+      budgetMin === undefined ||
+      budgetMin === "" ||
+      budgetMax === undefined ||
+      budgetMax === ""
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget range is required",
+      });
+    }
+
+    if (!deadline || !deadline.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Project deadline is required",
+      });
+    }
+
+    // -----------------------------------------
+    // Convert budget to numbers
+    // -----------------------------------------
+
+    const minimumBudget = Number(budgetMin);
+    const maximumBudget = Number(budgetMax);
+
+    if (Number.isNaN(minimumBudget) || Number.isNaN(maximumBudget)) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget must be a valid number",
+      });
+    }
+
+    if (minimumBudget <= 0 || maximumBudget <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget must be greater than 0",
+      });
+    }
+
+    if (minimumBudget > maximumBudget) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum budget cannot be greater than maximum budget",
+      });
+    }
+
+    // -----------------------------------------
     // Create job
     // -----------------------------------------
 
     const newJob = new PostJob({
       clientId: client._id,
-      clientName: clientName || client.fullName,
-      title,
-      companyName,
-      description,
-      skills: Array.isArray(skills) ? skills : [],
-      budgetMin:
-        budgetMin !== undefined && budgetMin !== "" ? Number(budgetMin) : 0,
-      budgetMax:
-        budgetMax !== undefined && budgetMax !== "" ? Number(budgetMax) : 0,
-      deadline,
-      category,
+
+      clientName: clientName || client.fullName || client.name,
+
+      title: title.trim(),
+
+      companyName: companyName?.trim() || "",
+
+      description: description.trim(),
+
+      projectType,
+
+      experienceLevel,
+
+      duration: duration?.trim() || "",
+
+      budgetMin: minimumBudget,
+
+      budgetMax: maximumBudget,
+
+      deadline: deadline.trim(),
+
+      status: "open",
+
+      assignedFreelancerId: null,
+
+      proposals: 0,
     });
 
     await newJob.save();
@@ -234,10 +315,6 @@ router.post("/postjob", async (req, res) => {
     });
   }
 });
-
-// =========================================================
-// GET ALL POSTED JOBS
-// =========================================================
 
 router.get("/postjobs", async (req, res) => {
   try {
@@ -708,10 +785,16 @@ router.post("/proposals/:projectId", async (req, res) => {
     }
 
     // -----------------------------------------
-    // Check if position already filled
+    // Reject upfront if position already filled
+    // (no proposal is created in this case)
     // -----------------------------------------
 
-    const positionFilled = Boolean(project.assignedFreelancerId);
+    if (project.assignedFreelancerId) {
+      return res.status(400).json({
+        success: false,
+        message: "This position has already been filled.",
+      });
+    }
 
     // -----------------------------------------
     // Check freelancer
@@ -750,23 +833,17 @@ router.post("/proposals/:projectId", async (req, res) => {
     }
 
     // -----------------------------------------
-    // Create proposal
+    // Create proposal (only reached if every check above passed)
     // -----------------------------------------
 
     const proposal = await Proposal.create({
       projectId: project._id,
-
       freelancerId: freelancer._id,
-
       clientId: project.clientId,
-
       bidAmount: Number(bidAmount),
-
       deliveryTime: Number(deliveryTime),
-
       coverLetter: coverLetter.trim(),
-
-      status: positionFilled ? "rejected" : "pending",
+      status: "pending",
     });
 
     // -----------------------------------------
@@ -780,12 +857,17 @@ router.post("/proposals/:projectId", async (req, res) => {
     // -----------------------------------------
     // Success response
     // -----------------------------------------
-
+    if (!proposal) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create proposal",
+      });
+    }
+    
+    
     return res.status(201).json({
       success: true,
-      message: positionFilled
-        ? "This position has already been filled. Your proposal was recorded as not selected."
-        : "Proposal submitted successfully",
+      message: "Proposal submitted successfully",
       proposal,
     });
   } catch (error) {

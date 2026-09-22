@@ -29,6 +29,7 @@ function Clientprojects() {
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
+  const [progressMap, setProgressMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [activeTab, setActiveTab] = useState("All");
@@ -60,7 +61,49 @@ function Clientprojects() {
     };
 
     fetchMyProjects();
-  }, []);
+  }, [projects]);
+
+  // =====================================================
+  // FETCH PROGRESS FOR `IN-PROGRESS PROJECTS
+  // =====================================================
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      const inProgressJobs = projects.filter(
+        (p) => p.status?.toLowerCase() === "in-progress",
+      );
+
+      if (inProgressJobs.length === 0) return;
+
+      try {
+        const results = await Promise.all(
+          inProgressJobs.map((job) => API.get(`/proposals/project/${job._id}`)),
+        );
+
+        const map = {};
+
+        results.forEach((res, index) => {
+          if (res.data.success) {
+            const accepted = res.data.proposals.find(
+              (p) => p.status === "accepted",
+            );
+
+            if (accepted) {
+              map[inProgressJobs[index]._id] = accepted.progress || 0;
+            }
+          }
+        });
+
+        setProgressMap(map);
+      } catch (error) {
+        console.log("Fetch Progress Error:", error);
+      }
+    };
+
+    if (projects.length > 0) {
+      fetchProgress();
+    }
+  }, [projects]);
 
   // =====================================================
   // PROJECT COUNTS
@@ -113,9 +156,7 @@ function Clientprojects() {
       <Clientheader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
+        {/* HEADER */}
 
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold mb-3">My Projects</h1>
@@ -125,36 +166,26 @@ function Clientprojects() {
           </p>
         </div>
 
-        {/* =====================================================
-            STATISTICS
-        ===================================================== */}
+        {/* STATISTICS */}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-          {/* Total Projects */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
             <p className="text-purple-200 text-sm mb-2">Total Projects</p>
-
             <h2 className="text-3xl font-bold">{totalProjects}</h2>
           </div>
 
-          {/* In Progress */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
             <p className="text-purple-200 text-sm mb-2">In Progress</p>
-
             <h2 className="text-3xl font-bold">{inProgressCount}</h2>
           </div>
 
-          {/* Completed */}
           <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6">
             <p className="text-purple-200 text-sm mb-2">Completed</p>
-
             <h2 className="text-3xl font-bold">{completedCount}</h2>
           </div>
         </div>
 
-        {/* =====================================================
-            SEARCH
-        ===================================================== */}
+        {/* SEARCH */}
 
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
@@ -181,9 +212,7 @@ function Clientprojects() {
           </button>
         </div>
 
-        {/* =====================================================
-            TABS
-        ===================================================== */}
+        {/* TABS */}
 
         <div className="flex flex-wrap gap-3 mb-8">
           {tabs.map((tab) => (
@@ -202,9 +231,7 @@ function Clientprojects() {
           ))}
         </div>
 
-        {/* =====================================================
-            LOADING
-        ===================================================== */}
+        {/* LOADING */}
 
         {loading && (
           <p className="text-purple-200 text-center py-10">
@@ -212,9 +239,7 @@ function Clientprojects() {
           </p>
         )}
 
-        {/* =====================================================
-            NO PROJECTS
-        ===================================================== */}
+        {/* NO PROJECTS */}
 
         {!loading && filteredProjects.length === 0 && (
           <p className="text-purple-200 text-center py-10">
@@ -224,14 +249,13 @@ function Clientprojects() {
           </p>
         )}
 
-        {/* =====================================================
-            PROJECT CARDS
-        ===================================================== */}
+        {/* PROJECT CARDS */}
 
         {!loading && filteredProjects.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => {
               const projectStatus = project.status?.toLowerCase() || "open";
+              const progressValue = progressMap[project._id] || 0;
 
               return (
                 <div
@@ -242,10 +266,6 @@ function Clientprojects() {
 
                   <div className="flex items-start justify-between mb-5">
                     <div>
-                      <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 mb-3">
-                        {project.category}
-                      </span>
-
                       <h2 className="text-xl font-bold">{project.title}</h2>
                     </div>
 
@@ -294,7 +314,7 @@ function Clientprojects() {
 
                   {/* Status */}
 
-                  <div className="mb-5">
+                  <div className="mb-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         STATUS_STYLES[projectStatus] ||
@@ -304,6 +324,43 @@ function Clientprojects() {
                       {STATUS_LABELS[projectStatus] || project.status || "Open"}
                     </span>
                   </div>
+
+                  {/* Progress (in-progress projects only) */}
+
+                  {projectStatus === "in-progress" && (
+                    <div className="mb-5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs text-purple-300">Progress</p>
+                        <p className="text-xs font-semibold text-purple-200">
+                          {progressValue}%
+                        </p>
+                      </div>
+
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className="bg-purple-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${progressValue}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed indicator (full bar, locked at 100%) */}
+
+                  {projectStatus === "completed" && (
+                    <div className="mb-5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs text-purple-300">Progress</p>
+                        <p className="text-xs font-semibold text-green-300">
+                          100%
+                        </p>
+                      </div>
+
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div className="bg-green-500 h-2 rounded-full w-full" />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Bottom */}
 

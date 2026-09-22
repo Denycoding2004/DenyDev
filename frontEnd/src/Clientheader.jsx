@@ -36,8 +36,8 @@ bg-[#4C1D95]/100
         border-white/20
         shadow-lg"
       >
-        <div className="px-4 sm:px-6 md:px-10 py-4">
-          <div className="flex items-center justify-between">
+        <div className="px- sm:px-6 md:px-10 py-4">
+          <div className="flex items-center justify-space-between">
             {/* LEFT - LOGO */}
             <button
               onClick={() => handleNavigation("#")}
@@ -124,9 +124,7 @@ bg-[#4C1D95]/100
                     <span>Messages</span>
 
                     {/* Notification */}
-                    <span className="absolute -top-2 -right-3 text-[10px] bg-red-500 px-1.5 py-0.5 rounded-full">
-                     
-                    </span>
+                   
                   </button>
                 </li>
 

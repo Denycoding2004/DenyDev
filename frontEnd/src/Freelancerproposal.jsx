@@ -14,7 +14,7 @@ import {
 import Freelancerheader from "./Freelancerheader";
 import API from "./API";
 
-function ViewProject() {
+function Freelancerproposal() {
   const { projectId } = useParams();
   const navigate = useNavigate();
 
@@ -257,23 +257,17 @@ function ViewProject() {
         coverLetter: formData.coverLetter.trim(),
       });
 
-      // -----------------------------------------
-      // Success
-      // -----------------------------------------
-
       if (res.data.success) {
         setProposalSuccess(true);
- 
-        // Update proposal count immediately
+        setProposalSubmitted(true);
+
         setProject((prev) => ({
           ...prev,
           proposals: (prev.proposals || 0) + 1,
         }));
 
-        // Close modal after 2 seconds
         setTimeout(() => {
           setShowProposalModal(false);
-
           setProposalSuccess(false);
 
           setFormData({
@@ -292,7 +286,6 @@ function ViewProject() {
       setProposalLoading(false);
     }
   };
-
   // =====================================================
   // LOADING
   // =====================================================
@@ -359,10 +352,6 @@ function ViewProject() {
             <div className="p-6 sm:p-8 border-b border-white/10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div>
-                  <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-                    {project.category}
-                  </span>
-
                   <h1 className="text-3xl sm:text-4xl font-bold text-white">
                     {project.title}
                   </h1>
@@ -430,12 +419,7 @@ function ViewProject() {
                         <div className="p-2 bg-purple-600/20 rounded-lg">
                           <Briefcase size={20} className="text-purple-400" />
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-400">Category</p>
-                          <p className="text-white font-medium mt-1">
-                            {project.category}
-                          </p>
-                        </div>
+                        <div></div>
                       </div>
                     </div>
 
@@ -563,8 +547,15 @@ function ViewProject() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmitProposal} className="p-5 space-y-5">
+              <form onSubmit={handleSubmitProposal} className="p-5 space-y-2">
                 <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Coapany Name
+                  </label>
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                    {project.companyName}
+                  </div>
+                </div><div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Project
                   </label>
@@ -588,16 +579,15 @@ function ViewProject() {
                         name="bidAmount"
                         value={formData.bidAmount}
                         onChange={handleInputChange}
-                        placeholder="500"
+                        placeholder={`₹${Number(
+                          project.budgetMin || 0,
+                        ).toLocaleString(
+                          "en-IN",
+                        )} - ₹${Number(project.budgetMax || 0).toLocaleString("en-IN")}`}
                         min="1"
                         className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-purple-500"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Client budget: ₹
-                      {Number(project.budgetMin || 0).toLocaleString("en-IN")} -
-                      ₹{Number(project.budgetMax || 0).toLocaleString("en-IN")}
-                    </p>
                   </div>
 
                   <div>
@@ -614,7 +604,7 @@ function ViewProject() {
                         name="deliveryTime"
                         value={formData.deliveryTime}
                         onChange={handleInputChange}
-                        placeholder="12"
+                        placeholder={`${duration || "7"}`}
                         min="1"
                         className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-16 py-3 text-white placeholder-gray-500 outline-none focus:border-purple-500"
                       />
@@ -646,7 +636,7 @@ function ViewProject() {
                 </div>
 
                 {proposalError && (
-                  <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl px-4 mt-0 mb-0 py-3 text-sm">
+                  <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl px-4 mt-0 mb-0 py-2.5 text-sm">
                     {proposalError}
                   </div>
                 )}
@@ -688,4 +678,4 @@ function ViewProject() {
   );
 }
 
-export default ViewProject;
+export default Freelancerproposal;
